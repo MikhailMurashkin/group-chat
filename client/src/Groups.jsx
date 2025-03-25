@@ -41,10 +41,10 @@ const Groups = () => {
         fetchData()
     }, [])
 
-    const GroupElement = () => {
+    const GroupElement = (par) => {
         return (
             <div>
-                Group
+                {par.name}
             </div>
         )
     }
@@ -119,8 +119,9 @@ const Groups = () => {
                 </Modal.Footer>
             </Modal>
 
-             {groups.map((group, i) => (<GroupElement key={i} />) ) }
-             
+             {groups.map((group, i) => 
+                <GroupElement name={group.name} key={i} />
+            )}
         </>
     );
 }
