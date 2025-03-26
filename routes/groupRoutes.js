@@ -35,6 +35,62 @@ groupRoutes.get('/getGroupsByUserId', protect, async (req, res) => {
     }
 });
 
+groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
+    try {
+        await Group.findOne({id: req.body.groupId})
+        .then(group => {
+          let groupDoc = group._doc
+          if (groupDoc.creator == req.user) {
+            groupDoc.isCreator = 'true'
+          }
+
+          User.find({}).then(users => {
+
+            let participantsExtended = []
+            
+            groupDoc.participants.forEach((participant) => {
+              let userI = users.findIndex(u => u.id == participant)
+              console.log(participant)
+              participantsExtended.push({
+                id: users[userI].id,
+                name: users[userI].name
+              })
+            })
+            groupDoc.participants = participantsExtended
+            res.json(groupDoc);
+          
+
+          })
+        })
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+})
+
+groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
+    try {
+        Group.findOne({inviteCode: req.body.inviteCode, participants: {$nin: [req.user] }})
+        .then(group => {
+          if (!group || !group.allowNewParticipants) {
+            res.status(400).json({ message: "Can't join this group now" });
+          } else {
+            Group.findOneAndUpdate(
+              { inviteCode: req.body.inviteCode },
+              { $push: {participants: req.user} }
+            ).then(
+              res.status(200).json({message: "Joined!"})
+            )
+          }
+          // if (group.participants.findIndex(req.user) > -1) {
+          //   res.status(400).json({ message: "Already in the group" });
+          // }
+        })
+    } catch (error) {
+      console.log(error)
+        res.status(500).json({ message: 'Server error' });
+    }
+})
+
 groupRoutes.get('/me', protect, async (req, res) => {
     try {
       const user = await User.findById(req.user).select('-password');

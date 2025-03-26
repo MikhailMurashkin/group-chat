@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useState, useContext, useEffect } from 'react'
 import { AuthContext } from './modules/AuthContext'
-import { createGroup, getGroupsByUserId } from './modules/Api'
+import { createGroup, getGroupsByUserId, joinGroupByCode } from './modules/Api'
 
 import Navbar from 'react-bootstrap/Navbar';
 import Form from 'react-bootstrap/Form';
@@ -37,11 +37,12 @@ const Groups = () => {
 
     const navigate = useNavigate();
 
+    console.log(user)
 
     useEffect(() => {
         async function fetchData(){
             setGroups(
-                await getGroupsByUserId(localStorage.getItem("token"))
+                await getGroupsByUserId()
             )
         }
         fetchData()
@@ -159,8 +160,7 @@ const Groups = () => {
                 <Modal.Footer>
                 <Button variant='secondary' onClick={() => setModalCreateShow(false)}>Отмена</Button>
                 <Button onClick={() => {
-                    createGroup(newGroupTitle, newGroupDescription,
-                        localStorage.getItem('token'))
+                    createGroup(newGroupTitle, newGroupDescription)
                 }}>Создать</Button>
                 </Modal.Footer>
             </Modal>
@@ -195,8 +195,9 @@ const Groups = () => {
                 </Modal.Body>
                 <Modal.Footer>
                 <Button variant='secondary' onClick={() => setModalJoinShow(false)}>Отмена</Button>
-                <Button onClick={() => {
-                    // join fetch
+                <Button onClick={async () => {
+                    //варечка умница
+                    joinGroupByCode(joinCode)
                 }}>Присоединиться</Button>
                 </Modal.Footer>
             </Modal>

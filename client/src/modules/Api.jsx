@@ -1,11 +1,11 @@
 const API_URL = 'http://localhost:3000';
 
-export const createGroup = async (groupName, groupDescription, token) => {
+export const createGroup = async (groupName, groupDescription) => {
   const response = await fetch(`${API_URL}/groups/createGroup`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
     },
     body: JSON.stringify({ 
       groupName, groupDescription
@@ -23,11 +23,11 @@ export const createGroup = async (groupName, groupDescription, token) => {
   return data;
 };
 
-export const getGroupsByUserId = async (token) => {
+export const getGroupsByUserId = async () => {
   const response = await fetch(`${API_URL}/groups/getGroupsByUserId`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
     },
   });
 
@@ -40,4 +40,50 @@ export const getGroupsByUserId = async (token) => {
   }
 
   return data.groups;
+};
+
+export const getGroupInfoById = async (groupId) => {
+  const response = await fetch(`${API_URL}/groups/getGroupInfoById`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({ 
+      groupId
+    }),
+  });
+
+  const data = await response.json();
+
+  console.log(data)
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Не удалось получить список групп');
+  }
+
+  return data.group;
+};
+
+export const joinGroupByCode = async (inviteCode) => {
+  const response = await fetch(`${API_URL}/groups/joinGroupByCode`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({ 
+      inviteCode
+    }),
+  });
+
+  const data = await response.json();
+
+  console.log(data)
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Не удалось получить список групп');
+  }
+
+  return data.group;
 };

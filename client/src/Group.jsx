@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './modules/AuthContext';
-// import { getMessage } from './modules/api';
+import { getGroupInfoById } from './modules/api';
 import socket from './modules/socket'
 
 import Button from 'react-bootstrap/Button';
@@ -18,19 +18,28 @@ const Group = () => {
     //     }
     // }
     const { login, user, logout } = useContext(AuthContext);
-    const { roomId } = useParams();
+    const { groupId } = useParams();
 
     const [message, setMessage] = useState('message');
     const [response, setResponse] = useState('');
+    const [groupInfo, setGroupInfo] = useState({});
 
 
     useEffect(() => {
         socket.connect()
 
+
+        async function fetchData(){
+            setGroupInfo(
+                await getGroupInfoById(groupId)
+            )
+        }
+        fetchData()
+
         // socket.on('message', (msg) => {
         //     setResponse(msg)
         // })
-    })
+    }, [])
 
     return (
         <>
@@ -46,12 +55,13 @@ const Group = () => {
                 Send message
             </Button>
             
+            
             <input type='text' onChange={(e) => {
                 setMessage(e.target.value)
             }}></input>
-            <h1>Room #{roomId}</h1>
+            <h1>Group #{groupId}</h1>
             <h1>Response: {response}</h1>
-            {user.email}
+            {/* {user.email} */}
         </>
     );
 }
