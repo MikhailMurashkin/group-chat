@@ -56,13 +56,11 @@ export const getGroupInfoById = async (groupId) => {
 
   const data = await response.json();
 
-  console.log(data)
-
   if (!response.ok) {
     throw new Error(data.message || 'Не удалось получить список групп');
   }
 
-  return data.group;
+  return data;
 };
 
 export const joinGroupByCode = async (inviteCode) => {

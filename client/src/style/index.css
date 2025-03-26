@@ -64,3 +64,50 @@
 .title {
   font-size: 32px;
 }
+
+.groupPage {
+  padding-top: 40px;
+  /* background-color: pink; */
+}
+
+.back {
+  cursor: pointer;
+  width: fit-content;
+  position: absolute;
+  top: 40px;
+  left: 40px;
+}
+
+.textBlock {
+  /* background-color: darkorange; */
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+  text-align: left;
+  margin: 20px 40px 20px 40px;
+}
+
+.description {
+  /* color: rgb(69, 69, 69); */
+  font-weight: bold
+}
+
+.textParticipants {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+}
+
+.showButton {
+  cursor: pointer;
+  font-style: italic;
+  color: rgb(69, 69, 69);
+}
+
+.memberInfo {
+  border-left: 5px #0d6efd solid;
+  padding-left: 10px;
+  margin-bottom: 5px;
+  margin-left: 15px;
+  margin-top: 2px;
+}

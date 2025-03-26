@@ -104,7 +104,7 @@ const Groups = () => {
                         <Card.Body>
                             <Card.Title as="h3">{group.name}</Card.Title>
                             <Card.Subtitle className="mb-2 text-muted">
-                                Участников: {new Array(group.participants).length}
+                                Участников: {new Array(...group.participants).length}
                             </Card.Subtitle>
                             <Card.Text>{group.description}</Card.Text>
                         </Card.Body>
