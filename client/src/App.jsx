@@ -1,7 +1,8 @@
 import {Routes, Route} from 'react-router-dom'
 import { AuthProvider } from './modules/AuthContext'
 import PrivateRoute from './modules/PrivateRoute'
-import './App.css'
+import './style/App.css'
+import './style/index.css'
 
 import Blank from './Blank'
 import Login from './Login'

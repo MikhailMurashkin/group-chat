@@ -57,6 +57,7 @@ const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
+        console.log("OK");
         const data = await response.json();
         localStorage.setItem('token', data.token);
         await setToken(data.token)
@@ -87,9 +88,8 @@ const AuthProvider = ({ children }) => {
         const data = await response.json();
         localStorage.setItem('token', data.token);
         setToken(data.token)
-        setUser(data.user);
-        console.log("registering", data.user)
-        navigate('/groups');
+        setUser(data.userId)
+        navigate('/groups')
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);

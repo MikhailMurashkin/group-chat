@@ -27,7 +27,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-mongoose.connect("mongodb+srv://murashkinmp:admin@cluster0.49nbo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0" || process.env.MONGO_URI)
+mongoose.connect("mongodb+srv://murashkinmp:admin@cluster0.49nbo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0" || process.env.MONGO_URI, {
+    family: 4
+})
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 

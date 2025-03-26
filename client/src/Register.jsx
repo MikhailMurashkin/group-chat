@@ -3,16 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './modules/AuthContext';
 
+import Button from 'react-bootstrap/Button';
+
 const Login = () => {
     const [name, setName] = useState('Varya');
     const [email, setEmail] = useState('varya@email.com');
     const [password, setPassword] = useState('password');
+    const [inputColor, setInputColor] = useState('grey');
+    const [checked, setChecked] = useState(false);
     const { register, user } = useContext(AuthContext);
     const navigate = useNavigate();
   
     useEffect(() => {
-      if(localStorage.getItem('token')) {
-        navigate('/rooms')
+      if (!checked) {
+        if(localStorage.getItem('token')) {
+          navigate('/groups')
+        }
+        setChecked(true)
       }
     })
   
@@ -22,6 +29,7 @@ const Login = () => {
         const data = await register(name, email, password);
       } catch (error) {
         console.error('Login error:', error.message);
+        setInputColor('red')
       }
     };
   
@@ -30,9 +38,11 @@ const Login = () => {
             <div className="loginForm">
                 <div className="title">Регистрация</div>
                 <div className="inputs">
-                <input className="basicInput" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                <input className="basicInput" type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                <button className="basicButton" type="submit">Войти</button>
+                <input className="basicInput" type="text" placeholder="Имя пользователя" value={name} style={{borderColor: inputColor}} onFocus={() => setInputColor('grey')} onChange={(e) => setName(e.target.value)} required />
+                <input className="basicInput" type="email" placeholder="Email" value={email} style={{borderColor: inputColor}} onFocus={() => setInputColor('grey')} onChange={(e) => setEmail(e.target.value)} required />
+                <input className="basicInput" type="password" placeholder="Пароль" value={password} style={{borderColor: inputColor}} onFocus={() => setInputColor('grey')} onChange={(e) => setPassword(e.target.value)} required />
+                <Button className="basicButton" type="submit">Зарегистрироваться</Button>
+                <Button variant='link' onClick={() => navigate('/login')}>Есть аккаунт? Войдите</Button>
                 </div>
             </div>
         </form>
