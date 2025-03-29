@@ -201,7 +201,7 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
     if (todaysMatch.groupId2 == req.body.foundGroupId) {
       myGroupId = todaysMatch.groupId1
     }
-    Group.findOne({id: req.body.myGroupId, participants: {$in: req.user}})
+    Group.findOne({id: req.body.myGroupId, participantsId: {$in: req.user}})
     .then(group => {
       if(group) {
         Group.findById(req.body.foundGroupId)
