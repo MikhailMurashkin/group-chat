@@ -33,6 +33,7 @@ const Group = () => {
     const [fetched, setFetched] = useState(false);
     const [newGroupDescription, setNewGroupDescription] = useState('');
     const [modalEditShow, setModalEditShow] = useState(false);
+    const [groupFound, setGroupFound] = useState({});
     const navigate = useNavigate();
 
     async function fetchData(){
@@ -40,9 +41,14 @@ const Group = () => {
         setGroupInfo(
             info
         )
+        try {
         let found = await getFoundGroupInfo(info.groupFoundTodayId)
         console.log(found)
-        // setCreator(info.isCreator)
+        setGroupFound(found)
+        } catch (e) {
+            console.log(e)
+        }
+        // setCreator (info.isCreator)
         setFetched(true)
     }
 
@@ -127,28 +133,32 @@ const Group = () => {
                         {groupInfo.inSearch &&
                         <div className="searching">
                             <Spinner animation="grow" variant="primary" size="sm" />
-                            Идет поиск группы
+                            Идет поиск группы...
                         </div>
                         }
-                        {
+                        
+                    </div>}
+                    {groupInfo.groupFoundTodayId.length > 0 &&
                             <div className="foundGroup">
                                 <Card className="text-center">
                                 <Card.Header>Найдена группа для общения</Card.Header>
                                 <Card.Body>
-                                <Card.Title>Special title treatment</Card.Title>
+                                <Card.Title>{groupFound?.name}</Card.Title>
                                 <Card.Text>
-                                    With supporting text below as a natural lead-in to additional content.
+                                    {groupFound?.description}
                                 </Card.Text>
+                                {groupInfo.isCreator &&
                                 <div className="buttonsFound">
                                     <Button variant="primary">Начать общение</Button>
                                     <Button variant="secondary">Отказаться</Button>
-                                </div>
+                                </div>}
+                                {!groupInfo.isCreator &&
                                 <Card.Text className="text-muted">Администратор еще не принял решение</Card.Text>
+                                }
                                 </Card.Body>
                             </Card>
                           </div>
                         }
-                    </div>}
 
                 <div className="textBlock">
                     <div className="text">Создатель группы: {groupInfo?.participants[0].name}</div>

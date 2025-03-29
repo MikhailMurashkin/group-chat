@@ -68,6 +68,8 @@
 .groupPage {
   padding-top: 40px;
   /* background-color: pink; */
+  display: flex;
+  flex-direction: column;
 }
 
 .back {
@@ -85,6 +87,7 @@
   row-gap: 20px;
   text-align: left;
   margin: 20px 40px 20px 40px;
+  padding-bottom: 40px;
 }
 
 .description {
@@ -121,11 +124,12 @@
 .actionsBlock {
   margin-top: 20px;
   text-align: center;
-  border-top: 2px solid gray;
+  border-bottom: 2px solid gray;
   display: flex;
   flex-direction: column;
   row-gap: 10px;
-  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-top: 10px;
 }
 
 .invite {
@@ -151,4 +155,20 @@
   justify-content: center;
   align-items: center;
   font-style: oblique;
+}
+
+.buttonsFound {
+  display: flex;
+  flex-direction: row;
+  column-gap: 10px;
+  justify-content: center;
+}
+
+.foundGroup {
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-top: 10px;
+  width: 80%;
+  min-width: 320px;
+  align-self: center;
 }
