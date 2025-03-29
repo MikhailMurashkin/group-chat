@@ -33,13 +33,13 @@ export const getGroupsByUserId = async () => {
 
   const data = await response.json();
 
-  console.log(data.groups)
+  console.log(data)
 
   if (!response.ok) {
     throw new Error(data.message || 'Не удалось получить список групп');
   }
 
-  return data.groups;
+  return data;
 };
 
 export const getGroupInfoById = async (groupId) => {
@@ -55,6 +55,7 @@ export const getGroupInfoById = async (groupId) => {
   });
 
   const data = await response.json();
+  console.log(data)
 
   if (!response.ok) {
     throw new Error(data.message || 'Не удалось получить список групп');

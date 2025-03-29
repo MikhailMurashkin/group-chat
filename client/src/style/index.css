@@ -92,6 +92,12 @@
   font-weight: bold
 }
 
+.editButton {
+  margin-left: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
 .textParticipants {
   display: flex;
   flex-direction: row;
@@ -110,4 +116,30 @@
   margin-bottom: 5px;
   margin-left: 15px;
   margin-top: 2px;
+}
+
+.actionsBlock {
+  margin-top: 20px;
+  text-align: center;
+  border-top: 2px solid gray;
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  padding-top: 20px;
+}
+
+.invite {
+  display: flex;
+  flex-direction: row;
+  column-gap: 4px;
+  justify-content: center;
+}
+
+.inviteCode {
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+  align-items: center;
 }

@@ -29,7 +29,8 @@ const Groups = () => {
     const { login, user, logout } = useContext(AuthContext);
     const [modalCreateShow, setModalCreateShow] = useState(false);
     const [modalJoinShow, setModalJoinShow] = useState(false);
-    const [groups, setGroups] = useState([]);
+    const [groupsCreated, setGroupsCreated] = useState([]);
+    const [groupsJoined, setGroupsJoined] = useState([]);
 
     const [newGroupTitle, setNewGroupTitle] = useState('');
     const [newGroupDescription, setNewGroupDescription] = useState('');
@@ -41,9 +42,12 @@ const Groups = () => {
 
     useEffect(() => {
         async function fetchData(){
-            setGroups(
-                await getGroupsByUserId()
-            )
+            let groups = await getGroupsByUserId()
+            setGroupsCreated(groups.groupsCreated)
+            setGroupsJoined(groups.groupsJoined)
+            // setGroups(
+            //     await getGroupsByUserId()
+            // )
         }
         fetchData()
     }, [])
@@ -96,7 +100,7 @@ const Groups = () => {
                     Создать группу
                     </Card.Text>
                 </Card> */}
-                {/* {groups.map(group => {
+                {groupsCreated.map(group => {
                     // let admin = room.admin._id == user._id ? "Вы" : room.admin.name
                     return(
                     <Card style={{ width: '20rem', height: '14rem' }} key={group.id} 
@@ -104,12 +108,30 @@ const Groups = () => {
                         <Card.Body>
                             <Card.Title as="h3">{group.name}</Card.Title>
                             <Card.Subtitle className="mb-2 text-muted">
-                                Участников: {new Array(...group.participants).length}
+                                Участников: {new Array(...group.participantsId).length}
                             </Card.Subtitle>
                             <Card.Text>{group.description}</Card.Text>
                         </Card.Body>
                     </Card>
-                )})} */}
+                )})}
+                </div>
+
+                <div className="groupsText" style={{paddingTop: '20px'}}>Группы, в которых Вы состоите</div>
+                <div className="groupsList">
+                {groupsJoined.map(group => {
+                    // let admin = room.admin._id == user._id ? "Вы" : room.admin.name
+                    return(
+                    <Card style={{ width: '20rem', height: '14rem' }} key={group.id} 
+                    onClick={() => navigate(`/group/${group.id}`)} className='groupCard'>
+                        <Card.Body>
+                            <Card.Title as="h3">{group.name}</Card.Title>
+                            <Card.Subtitle className="mb-2 text-muted">
+                                Участников: {new Array(...group.participantsId).length}
+                            </Card.Subtitle>
+                            <Card.Text>{group.description}</Card.Text>
+                        </Card.Body>
+                    </Card>
+                )})}
                 </div>
             </div>
             
