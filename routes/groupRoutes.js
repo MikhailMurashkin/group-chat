@@ -51,8 +51,12 @@ groupRoutes.get('/getGroupsByUserId', protect, async (req, res) => {
 
 groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
     try {
-        await Group.findOne({id: req.body.groupId})
+        await Group.findOne({id: req.body.groupId, participantsId: {$in: req.user}})
         .then(group => {
+          if (!group) {
+            return res.status(400).json({ message: 'Not found or no permission' });
+          }
+
           let groupDoc = group._doc
           if (groupDoc.creatorId == req.user) {
             groupDoc.isCreator = 'true'
@@ -60,17 +64,19 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
 
           User.find({}).then(users => {
 
-            let participantsExtended = []
-            
-            groupDoc.participantsId.forEach((participant) => {
-              let userI = users.findIndex(u => u.id == participant)
-              console.log(participant)
-              participantsExtended.push({
-                id: users[userI].id,
-                name: users[userI].name
+            if (groupDoc.creatorId == req.user) {
+              let participantsExtended = []
+              
+              groupDoc.participantsId.forEach((participant) => {
+                let userI = users.findIndex(u => u.id == participant)
+                console.log(participant)
+                participantsExtended.push({
+                  id: users[userI].id,
+                  name: users[userI].name
+                })
               })
-            })
-            groupDoc.participants = participantsExtended
+              groupDoc.participants = participantsExtended
+            }
 
 
             GroupMatch.findOne({
@@ -85,7 +91,7 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
                   groupDoc.groupFoundTodayId = todaysMatch.groupId1
                 }
               } else {
-                groupDoc.groupFoundTodayId = ""
+                groupDoc.groupFoundToday = ""
               }
               res.json(groupDoc);
             })
@@ -98,9 +104,31 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
 
 groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
   GroupMatch.findOne({
-    $or: [{groupId1: req.body.froundroupId}, {groupId2: req.body.groupId}],
+    $or: [{groupId1: req.body.foundGroupId}, {groupId2: req.body.foundGroupId}],
     date: moscowTime.format('YYYY-MM-DD')
   }).then(todaysMatch => {
+    let myGroupId = ""
+    if (todaysMatch.groupId1 == req.body.foundGroupId) {
+      myGroupId = todaysMatch.groupId2
+    }
+    if (todaysMatch.groupId2 == req.body.foundGroupId) {
+      myGroupId = todaysMatch.groupId1
+    }
+    Group.findOne({id: req.body.myGroupId, participants: {$in: req.user}})
+    .then(group => {
+      if(group) {
+        Group.findById(req.body.foundGroupId)
+        .then(foundGroup => {
+          let foundGroupInfo = {
+            name: foundGroup.name,
+            description: foundGroup.description
+          }
+          res.status(200).json(foundGroupInfo)
+        })
+      } else {
+        res.sendStatus(400).json({ message: 'No permission' })
+      }
+    })
     
   })
 })

@@ -109,3 +109,26 @@ export const startGroupSearch = async (groupId) => {
 
   return data.group;
 }
+
+export const getFoundGroupInfo = async (foundGroupId) => {
+  const response = await fetch(`${API_URL}/groups/getFoundGroupInfo`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({ 
+      foundGroupId
+    })
+  })
+
+  const data = await response.json();
+
+  console.log(data)
+
+  if (!response.ok) {
+    throw new Error(data.message);
+  }
+
+  return data;
+}
