@@ -9,11 +9,11 @@ const groupMatchSchema = new mongoose.Schema({
     },
     groupDecision1: {
         type: String,
-        default: 'No descision'
+        default: 'No decision'
     },
     groupDecision2: {
         type: String,
-        default: 'No descision'
+        default: 'No decision'
     },
     date: {
         type: Date

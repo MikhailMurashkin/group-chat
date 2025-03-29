@@ -193,22 +193,31 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
         return res.status(400).json({ message: 'Not found' })
       }
 
-      let myGroupId = ""
+      let myGroupId = ''
+      let foundGroupDecision = ''
+      let myGroupDecision
       if (todaysMatch.groupId1 == req.body.foundGroupId) {
         myGroupId = todaysMatch.groupId2
+        myGroupDecision = todaysMatch.groupDecision2
+        foundGroupDecision = todaysMatch.groupDecision1
       }
       if (todaysMatch.groupId2 == req.body.foundGroupId) {
         myGroupId = todaysMatch.groupId1
+        myGroupDecision = todaysMatch.groupDecision1
+        foundGroupDecision = todaysMatch.groupDecision2
       }
       Group.findOne({id: myGroupId, participantsId: {$in: req.user}})
       .then(group => {
         if(group) {
           Group.findOne({id: req.body.foundGroupId})
           .then(foundGroup => {
-            console.log(foundGroup)
             let foundGroupInfo = {
               name: foundGroup.name,
               description: foundGroup.description
+            }
+
+            if (myGroupDecision != 'No decision') {
+              foundGroupInfo.foundGroupDecision = foundGroupDecision
             }
             res.status(200).json(foundGroupInfo)
           })
