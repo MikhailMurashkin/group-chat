@@ -79,13 +79,13 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
             }).then(todaysMatch => {
               if (todaysMatch) {
                 if (todaysMatch.groupId1 == req.body.groupId) {
-                  groupDoc.foundGroupId = todaysMatch.groupId2
+                  groupDoc.groupFoundTodayId = todaysMatch.groupId2
                 }
                 if (todaysMatch.groupId2 == req.body.groupId) {
-                  groupDoc.foundGroupId = todaysMatch.groupId1
+                  groupDoc.groupFoundTodayId = todaysMatch.groupId1
                 }
               } else {
-                groupDoc.groupFoundToday = ""
+                groupDoc.groupFoundTodayId = ""
               }
               res.json(groupDoc);
             })
@@ -101,7 +101,7 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
     $or: [{groupId1: req.body.froundroupId}, {groupId2: req.body.groupId}],
     date: moscowTime.format('YYYY-MM-DD')
   }).then(todaysMatch => {
-
+    
   })
 })
 
@@ -109,7 +109,7 @@ groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
     try {
         Group.findOne({inviteCode: req.body.inviteCode, participantsId: {$nin: [req.user] }})
         .then(group => {
-          if (!group || !group.allowNewParticipants || group.complete) {
+          if (!group || group.complete) {
             return res.status(400).json({ message: "Can't join this group now" });
           } else {
             Group.findOneAndUpdate(
