@@ -24,10 +24,15 @@ const groupSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
-    allowNewParticipants: {
+    complete: {
         type: Boolean,
-        default: true
+        default: false
+    },
+    inSearch: {
+        type: Boolean,
+        default: false
     }
+    
 }, { timestamps: true });
 
 const Group = mongoose.model('Group', groupSchema);

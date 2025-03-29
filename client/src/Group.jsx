@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './modules/AuthContext';
-import { getGroupInfoById } from './modules/Api';
+import { getGroupInfoById, startGroupSearch } from './modules/Api';
 import socket from './modules/socket'
 
 import Button from 'react-bootstrap/Button';
@@ -64,12 +64,20 @@ const Group = () => {
                 Send message
             </Button>
             
+            <h1>{groupInfo.inSearch ? "Searching..." : ""}</h1>
             
             <input type='text' onChange={(e) => {
                 setMessage(e.target.value)
             }}></input>
             <h1>Group #{groupId}</h1>
             <h1>Response: {response}</h1>
+
+            
+            <Button as="a" variant="primary" onClick={()=>{
+                startGroupSearch(groupId)
+            }}>
+                Начать поиск
+            </Button>
             {/* {user.email} */}
 
             {fetched &&

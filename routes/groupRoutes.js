@@ -1,9 +1,11 @@
-import express from 'express';
+import express from 'express'
+import moment from 'moment'
 
-import User from '../models/User.js';
-import Group from '../models/Group.js';
-import protect from '../middleware/authMiddleware.js';
-const groupRoutes = express.Router();
+import User from '../models/User.js'
+import Group from '../models/Group.js'
+import GroupMatch from '../models/GroupMatch.js';
+import protect from '../middleware/authMiddleware.js'
+const groupRoutes = express.Router()
 
 groupRoutes.post('/createGroup', protect, async (req, res) => {
     try {
@@ -23,7 +25,7 @@ groupRoutes.post('/createGroup', protect, async (req, res) => {
         console.log(error)
         res.status(500).json({ message: 'Server error' });
     }
-});
+})
 
 groupRoutes.get('/getGroupsByUserId', protect, async (req, res) => {
     try {
@@ -33,7 +35,7 @@ groupRoutes.get('/getGroupsByUserId', protect, async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
-});
+})
 
 groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
     try {
@@ -71,8 +73,8 @@ groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
     try {
         Group.findOne({inviteCode: req.body.inviteCode, participants: {$nin: [req.user] }})
         .then(group => {
-          if (!group || !group.allowNewParticipants) {
-            res.status(400).json({ message: "Can't join this group now" });
+          if (!group || !group.allowNewParticipants || group.complete) {
+            return res.status(400).json({ message: "Can't join this group now" });
           } else {
             Group.findOneAndUpdate(
               { inviteCode: req.body.inviteCode },
@@ -81,15 +83,62 @@ groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
               res.status(200).json({message: "Joined!"})
             )
           }
-          // if (group.participants.findIndex(req.user) > -1) {
-          //   res.status(400).json({ message: "Already in the group" });
-          // }
         })
     } catch (error) {
       console.log(error)
         res.status(500).json({ message: 'Server error' });
     }
 })
+
+groupRoutes.post('/startGroupSearch', protect, (req, res) => {
+    try {
+        Group.findOneAndUpdate({id: req.body.groupId}, {
+          $set: {
+            complete: true,
+            inSearch: true,
+            description: "TEST!!"
+          }
+        })
+        .then(group => {
+          console.log(group)
+          if (!group || group.creator != req.user) {
+            return res.status(400).json({ message: 'No permission' });
+          }
+          if (group.inSearch) {
+            return res.status(400).json({ message: 'Already in search' });
+          }
+
+          Group.findOneAndUpdate({inSearch: true, id: {$ne: req.body.groupId}}, {
+            $set: {
+              // inSearch: false,
+              description: ":/"
+            }
+          }).then(foundGroup => {
+              if (!foundGroup) {
+                return res.status(200).json({ message: 'No available groups now' });
+              }
+              console.log(froundGroup.id)
+
+              group.$set('inSearch', false)
+              group.save().then(group => {
+                const groupMatch = new GroupMatch({
+                  id1: foundGroup.id,
+                  id2: group.id,
+                  date: moment().format("MM DD YY") 
+                })
+                groupMatch.save().then(groupMatch => {
+                  res.status(200).json(groupMatch)
+                })
+              })
+          })
+        })
+    } catch (error) {
+      console.log(error)
+        res.status(500).json({ message: 'Server error' });
+    }
+})
+
+
 
 groupRoutes.get('/me', protect, async (req, res) => {
     try {
@@ -102,7 +151,8 @@ groupRoutes.get('/me', protect, async (req, res) => {
       console.error(error);
       res.status(500).json({ message: 'Ошибка сервера' });
     }
-});
+})
+
 
 
 const generateInviteCode = () => {
@@ -112,7 +162,7 @@ const generateInviteCode = () => {
       code += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return code;
-};
+}
 
 const generateGroupId = () => {
     const characters = 'qwertyuiopasdfghjklzxcvbnm0123456789';
