@@ -191,7 +191,7 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
     date: moscowTime.format('YYYY-MM-DD')
   }).then(todaysMatch => {
     if(!todaysMatch) {
-      res.sendStatus(400).json({ message: 'Not found' })
+      return res.sendStatus(400).json({ message: 'Not found' })
     }
 
     let myGroupId = ""
@@ -201,11 +201,12 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
     if (todaysMatch.groupId2 == req.body.foundGroupId) {
       myGroupId = todaysMatch.groupId1
     }
-    Group.findOne({id: req.body.myGroupId, participantsId: {$in: req.user}})
+    Group.findOne({id: myGroupId, participantsId: {$in: req.user}})
     .then(group => {
       if(group) {
-        Group.findById(req.body.foundGroupId)
+        Group.findOne({id: req.body.foundGroupId})
         .then(foundGroup => {
+          console.log(foundGroup)
           let foundGroupInfo = {
             name: foundGroup.name,
             description: foundGroup.description
@@ -213,10 +214,9 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
           res.status(200).json(foundGroupInfo)
         })
       } else {
-        res.sendStatus(400).json({ message: 'No permission' })
+        res.status(400).json({ message: 'No permission' })
       }
     })
-    
   })
 })
 

@@ -59,7 +59,7 @@ const Group = () => {
         // socket.on('message', (msg) => {
         //     setResponse(msg)
         // })
-    })
+    }, [])
 
     const openEditModal = () => {
         setNewGroupDescription(groupInfo?.description)
