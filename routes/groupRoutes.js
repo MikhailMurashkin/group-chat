@@ -64,19 +64,17 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
 
           User.find({}).then(users => {
 
-            if (groupDoc.creatorId == req.user) {
-              let participantsExtended = []
-              
-              groupDoc.participantsId.forEach((participant) => {
-                let userI = users.findIndex(u => u.id == participant)
-                console.log(participant)
-                participantsExtended.push({
-                  id: users[userI].id,
-                  name: users[userI].name
-                })
+            let participantsExtended = []
+            
+            groupDoc.participantsId.forEach((participant) => {
+              let userI = users.findIndex(u => u.id == participant)
+              console.log(participant)
+              participantsExtended.push({
+                id: users[userI].id,
+                name: users[userI].name
               })
-              groupDoc.participants = participantsExtended
-            }
+            })
+            groupDoc.participants = participantsExtended
 
 
             GroupMatch.findOne({
@@ -91,7 +89,7 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
                   groupDoc.groupFoundTodayId = todaysMatch.groupId1
                 }
               } else {
-                groupDoc.groupFoundToday = ""
+                groupDoc.groupFoundTodayId = ""
               }
               res.json(groupDoc);
             })
@@ -186,46 +184,74 @@ groupRoutes.post('/startGroupSearch', protect, (req, res) => {
 })
 
 groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
-  GroupMatch.findOne({
-    $or: [{groupId1: req.body.foundGroupId}, {groupId2: req.body.foundGroupId}],
-    date: moscowTime.format('YYYY-MM-DD')
-  }).then(todaysMatch => {
-    if(!todaysMatch) {
-      return res.sendStatus(400).json({ message: 'Not found' })
-    }
-
-    let myGroupId = ""
-    if (todaysMatch.groupId1 == req.body.foundGroupId) {
-      myGroupId = todaysMatch.groupId2
-    }
-    if (todaysMatch.groupId2 == req.body.foundGroupId) {
-      myGroupId = todaysMatch.groupId1
-    }
-    Group.findOne({id: myGroupId, participantsId: {$in: req.user}})
-    .then(group => {
-      if(group) {
-        Group.findOne({id: req.body.foundGroupId})
-        .then(foundGroup => {
-          console.log(foundGroup)
-          let foundGroupInfo = {
-            name: foundGroup.name,
-            description: foundGroup.description
-          }
-          res.status(200).json(foundGroupInfo)
-        })
-      } else {
-        res.status(400).json({ message: 'No permission' })
+  try {
+    GroupMatch.findOne({
+      $or: [{groupId1: req.body.foundGroupId}, {groupId2: req.body.foundGroupId}],
+      date: moscowTime.format('YYYY-MM-DD')
+    }).then(todaysMatch => {
+      if(!todaysMatch) {
+        return res.status(400).json({ message: 'Not found' })
       }
+
+      let myGroupId = ""
+      if (todaysMatch.groupId1 == req.body.foundGroupId) {
+        myGroupId = todaysMatch.groupId2
+      }
+      if (todaysMatch.groupId2 == req.body.foundGroupId) {
+        myGroupId = todaysMatch.groupId1
+      }
+      Group.findOne({id: myGroupId, participantsId: {$in: req.user}})
+      .then(group => {
+        if(group) {
+          Group.findOne({id: req.body.foundGroupId})
+          .then(foundGroup => {
+            console.log(foundGroup)
+            let foundGroupInfo = {
+              name: foundGroup.name,
+              description: foundGroup.description
+            }
+            res.status(200).json(foundGroupInfo)
+          })
+        } else {
+          res.status(400).json({ message: 'No permission' })
+        }
+      })
     })
-  })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
 })
 
 
 groupRoutes.post('/foundGroupDecision', protect, async (req, res) => {
+  try {
+    GroupMatch.findOne({
+      $or: [{groupId1: req.body.myGroupId}, {groupId2: req.body.myGroupId}],
+      date: moscowTime.format('YYYY-MM-DD')
+    }).then(todaysMatch => {
 
+      console.log(req.body.decision)
+      if(!todaysMatch) {
+        return res.status(400).json({ message: 'Not found' })
+      }
+
+      if (todaysMatch.groupId1 == req.body.myGroupId) {
+        todaysMatch.groupDecision1 = req.body.decision
+      }
+      if (todaysMatch.groupId2 == req.body.myGroupId) {
+        todaysMatch.groupDecision2 = req.body.decision
+      }
+
+      todaysMatch.save().then(savedMatch => {
+        res.status(200).json(savedMatch)
+      })
+    })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
 })
-
-
 
 
 
