@@ -37,9 +37,7 @@ const Groups = () => {
     const [joinCode, setJoinCode] = useState('');
 
     const navigate = useNavigate();
-
-    console.log(user)
-
+    
     useEffect(() => {
         async function fetchData(){
             let groups = await getGroupsByUserId()

@@ -2,15 +2,15 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './modules/AuthContext';
-import { getGroupInfoById, startGroupSearch } from './modules/Api';
+import { getGroupInfoById, startGroupSearch, getFoundGroupInfo } from './modules/Api';
 import socket from './modules/socket'
 
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import CloseButton from 'react-bootstrap/esm/CloseButton'
 import Form from 'react-bootstrap/Form';
-
-import ListGroup from 'react-bootstrap/ListGroup';
+import Spinner from 'react-bootstrap/Spinner';
+import Card from 'react-bootstrap/Card';
 import { ArrowLeft, Copy, Pencil } from 'react-bootstrap-icons';
 
 const Group = () => {
@@ -35,20 +35,23 @@ const Group = () => {
     const [modalEditShow, setModalEditShow] = useState(false);
     const navigate = useNavigate();
 
+    async function fetchData(){
+        let info = await getGroupInfoById(groupId)
+        setGroupInfo(
+            info
+        )
+        let found = await getFoundGroupInfo(info.groupFoundTodayId)
+        console.log(found)
+        // setCreator(info.isCreator)
+        setFetched(true)
+    }
 
     useEffect(() => {
         if (!fetched) {
             socket.connect()
 
 
-            async function fetchData(){
-                // let info = await getGroupInfoById(groupId)
-                setGroupInfo(
-                    await getGroupInfoById(groupId)
-                )
-                // setCreator(info.isCreator)
-                setFetched(true)
-            }
+            
             fetchData()
             
         }
@@ -56,7 +59,7 @@ const Group = () => {
         // socket.on('message', (msg) => {
         //     setResponse(msg)
         // })
-    }, [])
+    })
 
     const openEditModal = () => {
         setNewGroupDescription(groupInfo?.description)
@@ -114,10 +117,37 @@ const Group = () => {
                                 <Copy size={16} />
                             </div>
                         </div>
-                        {/* {(groupInfo.inSearch || )
-                        <div className="search" onClick={()=>{startGroupSearch(groupId)}}>
-                            <Button >Найти группу для общения</Button>
-                        </div>} */}
+                        {(!groupInfo.inSearch && groupInfo?.groupFoundTodayId.length == 0) &&
+                        <div className="search">
+                            <Button onClick={async ()=>{
+                            await startGroupSearch(groupId)
+                            await fetchData()
+                        }}>Найти группу для общения</Button>
+                        </div>}
+                        {groupInfo.inSearch &&
+                        <div className="searching">
+                            <Spinner animation="grow" variant="primary" size="sm" />
+                            Идет поиск группы
+                        </div>
+                        }
+                        {
+                            <div className="foundGroup">
+                                <Card className="text-center">
+                                <Card.Header>Найдена группа для общения</Card.Header>
+                                <Card.Body>
+                                <Card.Title>Special title treatment</Card.Title>
+                                <Card.Text>
+                                    With supporting text below as a natural lead-in to additional content.
+                                </Card.Text>
+                                <div className="buttonsFound">
+                                    <Button variant="primary">Начать общение</Button>
+                                    <Button variant="secondary">Отказаться</Button>
+                                </div>
+                                <Card.Text className="text-muted">Администратор еще не принял решение</Card.Text>
+                                </Card.Body>
+                            </Card>
+                          </div>
+                        }
                     </div>}
 
                 <div className="textBlock">
