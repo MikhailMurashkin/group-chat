@@ -102,37 +102,6 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
     }
 })
 
-groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
-  GroupMatch.findOne({
-    $or: [{groupId1: req.body.foundGroupId}, {groupId2: req.body.foundGroupId}],
-    date: moscowTime.format('YYYY-MM-DD')
-  }).then(todaysMatch => {
-    let myGroupId = ""
-    if (todaysMatch.groupId1 == req.body.foundGroupId) {
-      myGroupId = todaysMatch.groupId2
-    }
-    if (todaysMatch.groupId2 == req.body.foundGroupId) {
-      myGroupId = todaysMatch.groupId1
-    }
-    Group.findOne({id: req.body.myGroupId, participants: {$in: req.user}})
-    .then(group => {
-      if(group) {
-        Group.findById(req.body.foundGroupId)
-        .then(foundGroup => {
-          let foundGroupInfo = {
-            name: foundGroup.name,
-            description: foundGroup.description
-          }
-          res.status(200).json(foundGroupInfo)
-        })
-      } else {
-        res.sendStatus(400).json({ message: 'No permission' })
-      }
-    })
-    
-  })
-})
-
 groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
     try {
         Group.findOne({inviteCode: req.body.inviteCode, participantsId: {$nin: [req.user] }})
@@ -215,6 +184,48 @@ groupRoutes.post('/startGroupSearch', protect, (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 })
+
+groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
+  GroupMatch.findOne({
+    $or: [{groupId1: req.body.foundGroupId}, {groupId2: req.body.foundGroupId}],
+    date: moscowTime.format('YYYY-MM-DD')
+  }).then(todaysMatch => {
+    if(!todaysMatch) {
+      res.sendStatus(400).json({ message: 'Not found' })
+    }
+
+    let myGroupId = ""
+    if (todaysMatch.groupId1 == req.body.foundGroupId) {
+      myGroupId = todaysMatch.groupId2
+    }
+    if (todaysMatch.groupId2 == req.body.foundGroupId) {
+      myGroupId = todaysMatch.groupId1
+    }
+    Group.findOne({id: req.body.myGroupId, participants: {$in: req.user}})
+    .then(group => {
+      if(group) {
+        Group.findById(req.body.foundGroupId)
+        .then(foundGroup => {
+          let foundGroupInfo = {
+            name: foundGroup.name,
+            description: foundGroup.description
+          }
+          res.status(200).json(foundGroupInfo)
+        })
+      } else {
+        res.sendStatus(400).json({ message: 'No permission' })
+      }
+    })
+    
+  })
+})
+
+
+groupRoutes.post('/foundGroupDecision', protect, async (req, res) => {
+
+})
+
+
 
 
 
