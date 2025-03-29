@@ -7,6 +7,14 @@ const groupMatchSchema = new mongoose.Schema({
     groupId2: {
         type: String
     },
+    groupSatus1: {
+        type: String,
+        default: 'No descision'
+    },
+    groupStatus2: {
+        type: String,
+        default: 'No descision'
+    },
     date: {
         type: Date
     }

@@ -54,7 +54,7 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
         await Group.findOne({id: req.body.groupId})
         .then(group => {
           let groupDoc = group._doc
-          if (groupDoc.creator == req.user) {
+          if (groupDoc.creatorId == req.user) {
             groupDoc.isCreator = 'true'
           }
 
@@ -71,14 +71,38 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
               })
             })
             groupDoc.participants = participantsExtended
-            res.json(groupDoc);
-          
 
+
+            GroupMatch.findOne({
+              $or: [{groupId1: req.body.groupId}, {groupId2: req.body.groupId}],
+              date: moscowTime.format('YYYY-MM-DD')
+            }).then(todaysMatch => {
+              if (todaysMatch) {
+                if (todaysMatch.groupId1 == req.body.groupId) {
+                  groupDoc.foundGroupId = todaysMatch.groupId2
+                }
+                if (todaysMatch.groupId2 == req.body.groupId) {
+                  groupDoc.foundGroupId = todaysMatch.groupId1
+                }
+              } else {
+                groupDoc.groupFoundToday = ""
+              }
+              res.json(groupDoc);
+            })
           })
         })
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
+})
+
+groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
+  GroupMatch.findOne({
+    $or: [{groupId1: req.body.froundroupId}, {groupId2: req.body.groupId}],
+    date: moscowTime.format('YYYY-MM-DD')
+  }).then(todaysMatch => {
+
+  })
 })
 
 groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
@@ -110,7 +134,7 @@ groupRoutes.post('/startGroupSearch', protect, (req, res) => {
         }).then(todaysMatch => {
           if (todaysMatch) {
             console.log(todaysMatch)
-            return res.status(400).json({ message: 'Group was found already' });
+            return res.status(400).json({ message: 'Group was found already today' });
           }
 
           Group.findOneAndUpdate({id: req.body.groupId}, {
@@ -120,20 +144,24 @@ groupRoutes.post('/startGroupSearch', protect, (req, res) => {
             }
           })
           .then(group => {
-            if (!group || group.creator != req.user) {
+            if (!group || group.creatorId != req.user) {
               return res.status(400).json({ message: 'No permission' });
             }
             if (group.inSearch) {
               return res.status(400).json({ message: 'Already in search' });
             }
   
-            Group.findOneAndUpdate({inSearch: true, id: {$ne: req.body.groupId}}, {
+            Group.findOneAndUpdate({
+              inSearch: true,
+              id: {$ne: req.body.groupId},
+              creatorId: {$ne: req.user}
+            }, {
               $set: {
                 inSearch: false
               }
             }).then(foundGroup => {
                 if (!foundGroup) {
-                  return res.status(200).json({ message: 'No available groups now' });
+                  return res.status(200).json({ message: 'Searching for groups..' });
                 }
                 console.log("found: ", foundGroup.id)
   
