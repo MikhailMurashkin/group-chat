@@ -84,9 +84,11 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
               if (todaysMatch) {
                 if (todaysMatch.groupId1 == req.body.groupId) {
                   groupDoc.groupFoundTodayId = todaysMatch.groupId2
+                  groupDoc.myDecision = todaysMatch.groupDecision1
                 }
                 if (todaysMatch.groupId2 == req.body.groupId) {
                   groupDoc.groupFoundTodayId = todaysMatch.groupId1
+                  groupDoc.myDecision = todaysMatch.groupDecision2
                 }
               } else {
                 groupDoc.groupFoundTodayId = ""
@@ -194,8 +196,8 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
       }
 
       let myGroupId = ''
-      let foundGroupDecision = ''
-      let myGroupDecision
+      let foundGroupDecision
+      let myGroupDecision = null
       if (todaysMatch.groupId1 == req.body.foundGroupId) {
         myGroupId = todaysMatch.groupId2
         myGroupDecision = todaysMatch.groupDecision2
@@ -216,7 +218,7 @@ groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
               description: foundGroup.description
             }
 
-            if (myGroupDecision != 'No decision') {
+            if (myGroupDecision == true) {
               foundGroupInfo.foundGroupDecision = foundGroupDecision
             }
             res.status(200).json(foundGroupInfo)

@@ -8,12 +8,13 @@ const groupMatchSchema = new mongoose.Schema({
         type: String
     },
     groupDecision1: {
-        type: String,
-        default: 'No decision'
+        type: Boolean
     },
     groupDecision2: {
-        type: String,
-        default: 'No decision'
+        type: Boolean
+    },
+    chatId: {
+        type: String
     },
     date: {
         type: Date

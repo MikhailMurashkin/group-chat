@@ -2,7 +2,9 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './modules/AuthContext';
-import { getGroupInfoById, startGroupSearch, getFoundGroupInfo } from './modules/Api';
+import { getGroupInfoById, startGroupSearch, getFoundGroupInfo,
+    foundGroupDecision
+ } from './modules/Api';
 import socket from './modules/socket'
 
 import Button from 'react-bootstrap/Button';
@@ -149,8 +151,12 @@ const Group = () => {
                                 </Card.Text>
                                 {groupInfo.isCreator &&
                                 <div className="buttonsFound">
-                                    <Button variant="primary">Начать общение</Button>
-                                    <Button variant="secondary">Отказаться</Button>
+                                    <Button variant="primary" onClick={() => {
+                                        foundGroupDecision(groupId, true)
+                                    }}>Начать общение</Button>
+                                    <Button variant="secondary" onClick={() => {
+                                        foundGroupDecision(groupId, false)
+                                    }}>Отказаться</Button>
                                 </div>}
                                 {!groupInfo.isCreator &&
                                 <Card.Text className="text-muted">Администратор еще не принял решение</Card.Text>
