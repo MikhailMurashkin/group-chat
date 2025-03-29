@@ -1,13 +1,11 @@
 import mongoose from 'mongoose'
 
 const groupMatchSchema = new mongoose.Schema({
-    id1: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Group'
+    groupId1: {
+        type: String
     },
-    id2: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Group'
+    groupId2: {
+        type: String
     },
     date: {
         type: Date

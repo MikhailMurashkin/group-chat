@@ -96,7 +96,7 @@ const Groups = () => {
                     Создать группу
                     </Card.Text>
                 </Card> */}
-                {groups.map(group => {
+                {/* {groups.map(group => {
                     // let admin = room.admin._id == user._id ? "Вы" : room.admin.name
                     return(
                     <Card style={{ width: '20rem', height: '14rem' }} key={group.id} 
@@ -109,7 +109,7 @@ const Groups = () => {
                             <Card.Text>{group.description}</Card.Text>
                         </Card.Body>
                     </Card>
-                )})}
+                )})} */}
                 </div>
             </div>
             

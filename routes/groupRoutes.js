@@ -1,11 +1,13 @@
 import express from 'express'
-import moment from 'moment'
+import moment from 'moment-timezone'
 
 import User from '../models/User.js'
 import Group from '../models/Group.js'
 import GroupMatch from '../models/GroupMatch.js';
 import protect from '../middleware/authMiddleware.js'
 const groupRoutes = express.Router()
+
+const moscowTime = moment.tz("Europe/Moscow")
 
 groupRoutes.post('/createGroup', protect, async (req, res) => {
     try {
@@ -15,8 +17,8 @@ groupRoutes.post('/createGroup', protect, async (req, res) => {
             name: groupName,
             description: groupDescription,
             id: generateGroupId(),
-            creator: req.user,
-            participants: [req.user],
+            creatorId: req.user,
+            participantsId: [req.user],
             inviteCode: generateInviteCode()
         });
 
@@ -29,10 +31,20 @@ groupRoutes.post('/createGroup', protect, async (req, res) => {
 
 groupRoutes.get('/getGroupsByUserId', protect, async (req, res) => {
     try {
-        const groups = await Group.find({creator: req.user});
-
-        res.json({ groups });
+      console.log(req.user)
+        const groupsCreated = await Group.find({ creatorId: req.user });
+        const groupsJoined = await Group.find({
+          participantsId: { $in: req.user },
+          $expr: {
+            $ne: [
+                { $arrayElemAt: ['$participantsId', 0] },
+                req.user
+            ]
+          }
+        })
+        res.json({ groupsCreated, groupsJoined });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: 'Server error' });
     }
 })
@@ -50,7 +62,7 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
 
             let participantsExtended = []
             
-            groupDoc.participants.forEach((participant) => {
+            groupDoc.participantsId.forEach((participant) => {
               let userI = users.findIndex(u => u.id == participant)
               console.log(participant)
               participantsExtended.push({
@@ -71,14 +83,14 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
 
 groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
     try {
-        Group.findOne({inviteCode: req.body.inviteCode, participants: {$nin: [req.user] }})
+        Group.findOne({inviteCode: req.body.inviteCode, participantsId: {$nin: [req.user] }})
         .then(group => {
           if (!group || !group.allowNewParticipants || group.complete) {
             return res.status(400).json({ message: "Can't join this group now" });
           } else {
             Group.findOneAndUpdate(
               { inviteCode: req.body.inviteCode },
-              { $push: {participants: req.user} }
+              { $push: {participantsId: req.user} }
             ).then(
               res.status(200).json({message: "Joined!"})
             )
@@ -92,44 +104,54 @@ groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
 
 groupRoutes.post('/startGroupSearch', protect, (req, res) => {
     try {
-        Group.findOneAndUpdate({id: req.body.groupId}, {
-          $set: {
-            complete: true,
-            inSearch: true,
-            description: "TEST!!"
-          }
-        })
-        .then(group => {
-          console.log(group)
-          if (!group || group.creator != req.user) {
-            return res.status(400).json({ message: 'No permission' });
-          }
-          if (group.inSearch) {
-            return res.status(400).json({ message: 'Already in search' });
+        GroupMatch.findOne({
+          $or: [{groupId1: req.body.groupId}, {groupId2: req.body.groupId}],
+          date: moscowTime.format('YYYY-MM-DD')
+        }).then(todaysMatch => {
+          if (todaysMatch) {
+            console.log(todaysMatch)
+            return res.status(400).json({ message: 'Group was found already' });
           }
 
-          Group.findOneAndUpdate({inSearch: true, id: {$ne: req.body.groupId}}, {
+          Group.findOneAndUpdate({id: req.body.groupId}, {
             $set: {
-              // inSearch: false,
-              description: ":/"
+              complete: true,
+              inSearch: true
             }
-          }).then(foundGroup => {
-              if (!foundGroup) {
-                return res.status(200).json({ message: 'No available groups now' });
+          })
+          .then(group => {
+            if (!group || group.creator != req.user) {
+              return res.status(400).json({ message: 'No permission' });
+            }
+            if (group.inSearch) {
+              return res.status(400).json({ message: 'Already in search' });
+            }
+  
+            Group.findOneAndUpdate({inSearch: true, id: {$ne: req.body.groupId}}, {
+              $set: {
+                inSearch: false
               }
-              console.log(froundGroup.id)
-
-              group.$set('inSearch', false)
-              group.save().then(group => {
-                const groupMatch = new GroupMatch({
-                  id1: foundGroup.id,
-                  id2: group.id,
-                  date: moment().format("MM DD YY") 
+            }).then(foundGroup => {
+                if (!foundGroup) {
+                  return res.status(200).json({ message: 'No available groups now' });
+                }
+                console.log("found: ", foundGroup.id)
+  
+                Group.findOneAndUpdate({id: req.body.groupId}, {
+                  $set: {
+                    inSearch: false
+                  }
+                }).then(group => {
+                  const groupMatch = new GroupMatch({
+                    groupId1: foundGroup.id,
+                    groupId2: group.id,
+                    date: moscowTime.format('YYYY-MM-DD')
+                  })
+                  groupMatch.save().then(groupMatch => {
+                    res.status(200).json(groupMatch)
+                  })
                 })
-                groupMatch.save().then(groupMatch => {
-                  res.status(200).json(groupMatch)
-                })
-              })
+            })
           })
         })
     } catch (error) {

@@ -11,14 +11,12 @@ const groupSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
-    creator: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+    creatorId: {
+        type: String,
         required: true
     },
-    participants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+    participantsId: [{
+        type: String
     }],
     inviteCode: {
         type: String,
