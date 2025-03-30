@@ -13,6 +13,7 @@ const Blank = () => {
     if(user) {
       navigate("/groups")
     } else {
+      navigate("/login")
       console.log("NO CONTEXT")
     }
   })

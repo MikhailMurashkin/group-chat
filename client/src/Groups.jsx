@@ -13,6 +13,7 @@ import Col from 'react-bootstrap/Col';
 import Modal from 'react-bootstrap/Modal';
 import CloseButton from 'react-bootstrap/esm/CloseButton'
 import Card from 'react-bootstrap/Card';
+import Loading from './Loading'
 // import { PeopleFill, PlusCircleFill } from 'react-bootstrap-icons';
 
 
@@ -29,25 +30,30 @@ const Groups = () => {
     const { login, user, logout } = useContext(AuthContext);
     const [modalCreateShow, setModalCreateShow] = useState(false);
     const [modalJoinShow, setModalJoinShow] = useState(false);
+    const [modalErrorShow, setModalErrorShow] = useState(false);
     const [groupsCreated, setGroupsCreated] = useState([]);
     const [groupsJoined, setGroupsJoined] = useState([]);
 
     const [newGroupTitle, setNewGroupTitle] = useState('');
     const [newGroupDescription, setNewGroupDescription] = useState('');
     const [joinCode, setJoinCode] = useState('');
+    const [fetched, setFetched] = useState(false);
 
     const navigate = useNavigate();
-    
+
     useEffect(() => {
         async function fetchData(){
             let groups = await getGroupsByUserId()
             setGroupsCreated(groups.groupsCreated)
             setGroupsJoined(groups.groupsJoined)
+            setFetched(true)
             // setGroups(
             //     await getGroupsByUserId()
             // )
         }
-        fetchData()
+        if (!fetched) {
+            fetchData()
+        }
     }, [])
 
     const GroupElement = (par) => {
@@ -61,6 +67,8 @@ const Groups = () => {
 
     return (
         <>
+        {fetched &&
+        <div>
             <Navbar className="bg-body-tertiary justify-content-between">
                 <Form>
                 </Form>
@@ -89,7 +97,7 @@ const Groups = () => {
                     </Button>
             </div>
 
-                <div className="groupsText">Созданные Вами группы</div>
+                <div className="groupsText" style={{display: groupsCreated.length > 0 ? 'initial' : 'none'}}>Созданные Вами группы</div>
                 <div className="groupsList">
                 {/* <Card bg="primary" border="primary" style={{ width: '20rem', height: '14rem' }} 
                 className='groupButton' onClick={() => setModalShow(true)}>
@@ -114,7 +122,10 @@ const Groups = () => {
                 )})}
                 </div>
 
-                <div className="groupsText" style={{paddingTop: '20px'}}>Группы, в которых Вы состоите</div>
+                <div className="groupsText" 
+                style={{paddingTop: '20px', display: groupsJoined.length > 0 ? 'initial' : 'none'}}>
+                    Группы, в которых Вы состоите
+                </div>
                 <div className="groupsList">
                 {groupsJoined.map(group => {
                     // let admin = room.admin._id == user._id ? "Вы" : room.admin.name
@@ -217,14 +228,43 @@ const Groups = () => {
                 <Button variant='secondary' onClick={() => setModalJoinShow(false)}>Отмена</Button>
                 <Button onClick={async () => {
                     //варечка умница
-                    joinGroupByCode(joinCode)
+                    try {
+                    await joinGroupByCode(joinCode)
+                    } catch (e) {
+                        console.log('got', e)
+                        setModalJoinShow(false)
+                        setModalErrorShow(true)
+                    }
                 }}>Присоединиться</Button>
+                </Modal.Footer>
+            </Modal>
+
+
+            <Modal
+                show={modalErrorShow}
+                size="lg"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+            >
+                <Modal.Header 
+                variant='danger'>
+                <Modal.Title id="contained-modal-title-vcenter">
+                    К сожалению, в данный момент невозможно присоединиться к группе
+                </Modal.Title>
+                <CloseButton onClick={() => modalErrorShow(false)} />
+                </Modal.Header>
+                <Modal.Footer>
+                <Button variant='dark' onClick={ () => {setModalErrorShow(false)
+                }}>Понятно</Button>
                 </Modal.Footer>
             </Modal>
 
              {/* {groups.map((group, i) => 
                 <GroupElement name={group.name} key={i} />
             )} */}
+            </div>}
+            {!fetched &&
+            <Loading />}
         </>
     );
 }
