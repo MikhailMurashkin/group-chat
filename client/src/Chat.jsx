@@ -29,6 +29,7 @@ const Chat = () => {
         setMessagesInfo(
             messagesInfo.messagesList
         )
+        console.log(messagesInfo)
     }
 
     useEffect(() => {
@@ -64,65 +65,91 @@ const Chat = () => {
         }
     };
 
+    const formatDate = (dateStr) => {
+        let timestamp = Date.parse(dateStr)
+        let date = new Date(timestamp)
+        let year = date.getFullYear()
+        let month = date.getMonth() + 1 < 10 ? '0'+(date.getMonth() + 1) : date.getMonth() + 1
+        let day = date.getDate() < 10 ? '0'+date.getDate() : date.getDate()
+        let hour = date.getHours() < 10 ? '0'+date.getHours() : date.getHours()
+        let minute = date.getMinutes() < 10 ? '0'+date.getMinutes() : date.getMinutes()
+
+        return day + '.' + month + '.' + year + ' ' + hour + ':' + minute
+    }
+
 
     return (
         <>
 
-            <h1>Chat</h1>
-        
-            <div style={{
-                width: '600px', backgroundColor: 'lightgray', margin: 'auto',
-                height: '300px', overflowY: 'auto'      
+            <div className="chatPage">
+            <div className="back" onClick={() => navigate('/group/'+groupId)}>
+                    <ArrowLeft size={24} />
+                </div>
+                <div className="groupsText">Чат</div>
+            
+                <div 
+                //style={{
+                    // width: '600px', backgroundColor: 'lightgray', margin: 'auto',
+                    // height: '300px', overflowY: 'auto'  }} 
+                id='scrollablePanel' className='chatPanel'>
+                    {messagesInfo.map((message, index) => {
+                        
+                        if(index == messagesInfo.length - 1){
+                            setTimeout(() => {
+                                var panel = document.getElementById('scrollablePanel');
+                                panel.scrollTop = panel.scrollHeight;
+                            }, 0)
+                        }
 
-            }} id='scrollablePanel'>
-                {messagesInfo.map((message, index) => {
-                    
-                    if(index == messagesInfo.length - 1){
-                        setTimeout(() => {
-                            var panel = document.getElementById('scrollablePanel');
-                            panel.scrollTop = panel.scrollHeight;
-                        }, 0)
-                    }
-
-                    return (
-                        <div key={index} style={message.isFromMyGroup ? {textAlign: 'right'} : {textAlign: 'left'}}>
-                            <b>{user._id == message.authorId ? 'You' : message.name}</b>
-                            <p>{message.message}</p>
-                        </div>
-                    )
-                })}
-            </div>
+                        return (
+                            <div key={index} className={ message.isFromMyGroup ?'ourMessage' : 'othersMessage'}
+                            >
+                                <div className='messageName'>{user._id == message.authorId ? 'Вы' : message.name}</div>
+                                <div className='messageText'>{message.message}</div>
+                                <div className='messageTime'>{formatDate(message.date)}</div>
+                            </div>
+                        )
+                    })}
+                </div>
 
 
-            <Modal.Body style={{marginTop: '15px'}}>
-                <Form>
-                    <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-                    <Form.Control as="textarea" rows={5}
-                        value={message}
+                {/* <Modal.Body style={{marginTop: '15px'}}>
+                    <Form>
+                        <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+                        <Form.Control as="textarea" rows={5}
+                            value={message}
+                            onChange={(e) => {
+                                setMessage(e.target.value)
+                            }} />
+                        </Form.Group>
+                    </Form>
+                </Modal.Body> */}
+                <div className="messageWriteBlock">
+                    <div className="messageText">
+                        <textarea className='messageArea' rows={3} value={message}
                         onChange={(e) => {
                             setMessage(e.target.value)
                         }} />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
-            <Button onClick={() => {
-                // sendMessage(groupId, message)
+                    </div>
+                </div>
+                <Button onClick={() => {
+                    // sendMessage(groupId, message)
 
-                socket.timeout(3000).emit('message', groupId, message,
-                    localStorage.getItem('token'), (err, response) => {
-                    if (err) {
-                        // the server did not acknowledge the event in the given delay
-                      } else {
-                        console.log(response)
-                      }
-                })
-            }}>Сохранить</Button>
-
+                    socket.timeout(3000).emit('message', groupId, message,
+                        localStorage.getItem('token'), (err, response) => {
+                        if (err) {
+                            // the server did not acknowledge the event in the given delay
+                        } else {
+                            console.log(response)
+                        }
+                    })
+                }}>Сохранить</Button>
 
 
-            
 
+                
 
+            </div>
         </>
     )
 }
