@@ -9,6 +9,7 @@ import Login from './Login'
 import Register from './Register'
 import Groups from './Groups'
 import Group from './Group'
+import Chat from './Chat'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 
@@ -19,9 +20,10 @@ const App = () => {
       <Routes>
           <Route path="/" element={<Blank />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/groups" element={<PrivateRoute><Groups /></PrivateRoute>} />
           <Route path="/register" element={<Register/>} />
+          <Route path="/groups" element={<PrivateRoute><Groups /></PrivateRoute>} />
           <Route path="/group/:groupId" element={<PrivateRoute><Group /></PrivateRoute>} />
+          <Route path="/group/:groupId/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
           {/* <Route path="/rooms" element={<PrivateRoute><RoomList /></PrivateRoute>} />
           <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
           <Route path="/join-room" element={<PrivateRoute><JoinRoom /></PrivateRoute>} />

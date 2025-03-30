@@ -156,3 +156,48 @@ export const foundGroupDecision = async (myGroupId, decision) => {
 
   return data;
 }
+
+
+export const getChatData = async (groupId) => {
+  const response = await fetch(`${API_URL}/chat/getChatData`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({
+      groupId
+    })
+  })
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message);
+  }
+
+  return data;
+}
+
+
+export const sendMessage = async (groupId, message) => {
+  const response = await fetch(`${API_URL}/chat/sendMessage`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({
+      groupId,
+      message
+    })
+  })
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message);
+  }
+
+  return data;
+}

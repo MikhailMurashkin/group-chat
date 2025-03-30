@@ -1,10 +1,11 @@
 import express from 'express'
-import { createServer } from 'node:http';
+import { createServer } from 'node:http'
 import mongoose from 'mongoose'
 import cors from 'cors'
 import authRoutes from './routes/authRoutes.js'
 import groupRoutes from './routes/groupRoutes.js'
-import { Server } from 'socket.io';
+import chatRoutes from './routes/chatRoutes.js'
+import { Server } from 'socket.io'
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -31,35 +32,36 @@ mongoose.connect("mongodb+srv://murashkinmp:admin@cluster0.49nbo.mongodb.net/?re
     family: 4
 })
     .then(() => console.log('MongoDB connected'))
-    .catch(err => console.log(err));
+    .catch(err => console.log(err))
 
 
 
-app.use('/auth', authRoutes);
-app.use('/groups', groupRoutes);
+app.use('/auth', authRoutes)
+app.use('/groups', groupRoutes)
+app.use('/chat', chatRoutes)
 
 // app.get('/add', (req, res) => {
 //     // io.emit('')
 // })
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
+    console.log('a user connected')
     
-    socket.emit('message', 'hi');
+    socket.emit('message', 'hi')
 
     socket.on('message', (msg, callback) => {
-        console.log('message: ' + msg);
+        console.log('message: ' + msg)
         callback(`Got your message: ${msg}`)
     })
 
     socket.on('disconnect', () => {
-        console.log('user disconnected');
+        console.log('user disconnected')
     });
 });
   
 
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`)
 });

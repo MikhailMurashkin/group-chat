@@ -1,19 +1,19 @@
-import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useState, useContext, useEffect } from 'react';
-import { AuthContext } from './modules/AuthContext';
+import React from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useState, useContext, useEffect } from 'react'
+import { AuthContext } from './modules/AuthContext'
 import { getGroupInfoById, startGroupSearch, getFoundGroupInfo,
     foundGroupDecision
- } from './modules/Api';
+ } from './modules/Api'
 import socket from './modules/socket'
 
-import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button'
+import Modal from 'react-bootstrap/Modal'
 import CloseButton from 'react-bootstrap/esm/CloseButton'
-import Form from 'react-bootstrap/Form';
-import Spinner from 'react-bootstrap/Spinner';
-import Card from 'react-bootstrap/Card';
-import { ArrowLeft, Copy, Pencil } from 'react-bootstrap-icons';
+import Form from 'react-bootstrap/Form'
+import Spinner from 'react-bootstrap/Spinner'
+import Card from 'react-bootstrap/Card'
+import { ArrowLeft, Copy, Pencil } from 'react-bootstrap-icons'
 
 const Group = () => {
 
@@ -25,18 +25,18 @@ const Group = () => {
 
     //     }
     // }
-    const { login, user, logout } = useContext(AuthContext);
-    const { groupId } = useParams();
+    const { login, user, logout } = useContext(AuthContext)
+    const { groupId } = useParams()
 
-    const [message, setMessage] = useState('message');
-    const [response, setResponse] = useState('');
-    const [groupInfo, setGroupInfo] = useState({});
-    const [showList, setShowList] = useState(false);
-    const [fetched, setFetched] = useState(false);
-    const [newGroupDescription, setNewGroupDescription] = useState('');
-    const [modalEditShow, setModalEditShow] = useState(false);
-    const [groupFound, setGroupFound] = useState({});
-    const navigate = useNavigate();
+    const [message, setMessage] = useState('message')
+    const [response, setResponse] = useState('')
+    const [groupInfo, setGroupInfo] = useState({})
+    const [showList, setShowList] = useState(false)
+    const [fetched, setFetched] = useState(false)
+    const [newGroupDescription, setNewGroupDescription] = useState('')
+    const [modalEditShow, setModalEditShow] = useState(false)
+    const [groupFound, setGroupFound] = useState({})
+    const navigate = useNavigate()
 
     async function fetchData(){
         let info = await getGroupInfoById(groupId)
@@ -125,7 +125,7 @@ const Group = () => {
                                 <Copy size={16} />
                             </div>
                         </div>
-                        {(!groupInfo.inSearch && groupInfo?.groupFoundTodayId.length == 0) &&
+                        {(!groupInfo.inSearch && groupInfo?.groupFoundTodayId?.length == 0) &&
                         <div className="search">
                             <Button onClick={async ()=>{
                             await startGroupSearch(groupId)
@@ -140,9 +140,9 @@ const Group = () => {
                         }
                         
                     </div>}
-                    {groupInfo.groupFoundTodayId.length > 0 &&
-                            <div className="foundGroup">
-                                <Card className="text-center">
+                    {groupInfo.groupFoundTodayId?.length > 0 &&
+                        <div className="foundGroup">
+                            <Card className="text-center">
                                 <Card.Header>Найдена группа для общения</Card.Header>
                                 <Card.Body>
                                 <Card.Title>{groupFound?.name}</Card.Title>
@@ -163,8 +163,14 @@ const Group = () => {
                                 }
                                 </Card.Body>
                             </Card>
-                          </div>
-                        }
+                            
+                            {groupInfo.chat &&
+                                <Button variant="primary" onClick={() => {
+                                    navigate('./chat')
+                                }}>Открыть чат</Button>
+                            }
+                        </div>
+                    }
 
                 <div className="textBlock">
                     <div className="text">Создатель группы: {groupInfo?.participants[0].name}</div>
@@ -227,9 +233,8 @@ const Group = () => {
                 }>Сохранить</Button>
                 </Modal.Footer>
             </Modal>
-
         </>
-    );
+    )
 }
 
-export default Group;
+export default Group

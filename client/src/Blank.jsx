@@ -1,11 +1,11 @@
-import React, {useEffect, useContext} from 'react';
-import { AuthContext } from './modules/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, {useEffect, useContext} from 'react'
+import { AuthContext } from './modules/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 const Blank = () => {
   console.log("BLANK")
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext)
+  const navigate = useNavigate()
 
   console.log(user)
   
@@ -21,7 +21,7 @@ const Blank = () => {
     <div>
       BLANK PAGE
     </div>
-  );
-};
+  )
+}
 
-export default Blank;
+export default Blank

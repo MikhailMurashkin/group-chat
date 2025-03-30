@@ -4,6 +4,7 @@ import moment from 'moment-timezone'
 import User from '../models/User.js'
 import Group from '../models/Group.js'
 import GroupMatch from '../models/GroupMatch.js';
+import Chat from '../models/Chat.js';
 import protect from '../middleware/authMiddleware.js'
 const groupRoutes = express.Router()
 
@@ -16,7 +17,7 @@ groupRoutes.post('/createGroup', protect, async (req, res) => {
         const group = await Group.create({
             name: groupName,
             description: groupDescription,
-            id: generateGroupId(),
+            id: generateId(),
             creatorId: req.user,
             participantsId: [req.user],
             inviteCode: generateInviteCode()
@@ -82,6 +83,7 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
               date: moscowTime.format('YYYY-MM-DD')
             }).then(todaysMatch => {
               if (todaysMatch) {
+                console.log(moscowTime.format('YYYY-MM-DD'))
                 if (todaysMatch.groupId1 == req.body.groupId) {
                   groupDoc.groupFoundTodayId = todaysMatch.groupId2
                   groupDoc.myDecision = todaysMatch.groupDecision1
@@ -90,8 +92,10 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
                   groupDoc.groupFoundTodayId = todaysMatch.groupId1
                   groupDoc.myDecision = todaysMatch.groupDecision2
                 }
-              } else {
-                groupDoc.groupFoundTodayId = ""
+                
+                if(todaysMatch.groupDecision1 && todaysMatch.groupDecision2) {
+                  groupDoc.chat = true
+                }
               }
               res.json(groupDoc);
             })
@@ -157,25 +161,25 @@ groupRoutes.post('/startGroupSearch', protect, (req, res) => {
                 inSearch: false
               }
             }).then(foundGroup => {
-                if (!foundGroup) {
-                  return res.status(200).json({ message: 'Searching for groups..' });
+              if (!foundGroup) {
+                return res.status(200).json({ message: 'Searching for groups..' });
+              }
+              console.log("found: ", foundGroup.id)
+
+              Group.findOneAndUpdate({id: req.body.groupId}, {
+                $set: {
+                  inSearch: false
                 }
-                console.log("found: ", foundGroup.id)
-  
-                Group.findOneAndUpdate({id: req.body.groupId}, {
-                  $set: {
-                    inSearch: false
-                  }
-                }).then(group => {
-                  const groupMatch = new GroupMatch({
-                    groupId1: foundGroup.id,
-                    groupId2: group.id,
-                    date: moscowTime.format('YYYY-MM-DD')
-                  })
-                  groupMatch.save().then(groupMatch => {
-                    res.status(200).json(groupMatch)
-                  })
+              }).then(group => {
+                const groupMatch = new GroupMatch({
+                  groupId1: foundGroup.id,
+                  groupId2: group.id,
+                  date: moscowTime.format('YYYY-MM-DD')
                 })
+                groupMatch.save().then(groupMatch => {
+                  res.status(200).json(groupMatch)
+                })
+              })
             })
           })
         })
@@ -255,7 +259,28 @@ groupRoutes.post('/foundGroupDecision', protect, async (req, res) => {
       }
 
       todaysMatch.save().then(savedMatch => {
-        res.status(200).json(savedMatch)
+        if (savedMatch.groupDecision1 && savedMatch.groupDecision2) {
+          Chat.findOne({
+            $or: [{groupId1: todaysMatch.groupId1}, {groupId1: todaysMatch.groupId2}],
+            $or: [{groupId2: todaysMatch.groupId1}, {groupId2: todaysMatch.groupId2}],
+            isActive: true
+          }).then(chat => {
+            if (chat) {
+              res.status(400).json({message: 'Chat already created'})
+            } else {
+              let chat = new Chat({
+                groupId1: todaysMatch.groupId1,
+                groupId2: todaysMatch.groupId2,
+                isActive: true
+              })
+              chat.save().then(chat => {
+                res.status(200).json(savedMatch)
+              })
+            }
+        })
+        } else {
+          res.status(200).json(savedMatch)
+        }
       })
     })
   } catch (error) {
@@ -290,7 +315,7 @@ const generateInviteCode = () => {
     return code;
 }
 
-const generateGroupId = () => {
+const generateId = () => {
     const characters = 'qwertyuiopasdfghjklzxcvbnm0123456789';
     let code = '';
     for (let i = 0; i < 33; i++) {
@@ -299,4 +324,4 @@ const generateGroupId = () => {
     return code;
 }
 
-export default groupRoutes;
+export default groupRoutes

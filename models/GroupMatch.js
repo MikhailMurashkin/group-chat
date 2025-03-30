@@ -13,14 +13,11 @@ const groupMatchSchema = new mongoose.Schema({
     groupDecision2: {
         type: Boolean
     },
-    chatId: {
-        type: String
-    },
     date: {
         type: Date
     }
-}, { timestamps: true });
+}, { timestamps: true })
 
-const GroupMatch = mongoose.model('GroupMatch', groupMatchSchema);
+const GroupMatch = mongoose.model('GroupMatch', groupMatchSchema)
 
-export default GroupMatch;
+export default GroupMatch

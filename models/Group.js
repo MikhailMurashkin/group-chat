@@ -29,8 +29,10 @@ const groupSchema = new mongoose.Schema({
     inSearch: {
         type: Boolean,
         default: false
-    }
-    
+    },
+    // chatGroupId: {
+    //     type: String
+    // }
 }, { timestamps: true });
 
 const Group = mongoose.model('Group', groupSchema);
