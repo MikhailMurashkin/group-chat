@@ -53,50 +53,20 @@ let namespaces = {}
 
 io.on('connection', (socket) => {
 
-    socket.on('joinGroup', (groupId) => {
-        socket.join(groupId);
-        console.log(`User ${socket.id} joined group ${groupId}`);
-    });
-
-    socket.on('message', ({ groupId, msg }) => {
-        console.log(`Message from group ${groupId}:`, msg);
-        // Отправляем сообщение всем в комнате
-        io.to(groupId).emit('message', `Message from ${socket.id}: ${msg}`);
-    });
+    socket.on('joinChat', (chatId) => {
+        socket.join(chatId);
+        console.log(`User ${socket.id} joined chat ${chatId} !`);
+    })
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
-    });
-
-    // socket.on('joinNamespace', (groupId) => {
-    //     console.log('joinNamespace ', groupId)
-    //     if (!namespaces[groupId]) {
-    //         console.log('Создаем')
-    //         namespaces[groupId] = io.of(`/namespace_${groupId}`);
-    //         namespaces[groupId].on('connection', (nsSocket) => {
-    //             console.log(`User connected to namespace: /namespace_${groupId}`);
-
-    //             nsSocket.on('message', (message) => {
-    //                 console.log(`Message from /namespace_${groupId}: ${message}`);
-    //                 nsSocket.emit('message', `Echo: ${message}`);
-    //             });
-
-    //             nsSocket.on('disconnect', () => {
-    //                 console.log(`User disconnected from namespace: /namespace_${groupId}`);
-    //             });
-    //         });
-
-    //     }
-    //     socket.join(`/namespace_${groupId}`);
-    //     namespaces[groupId].to(socket.id).emit('message', "MESSAGE FROM NAMESPACE");
-    // })
+    })
 
 
-    socket.on('message', (groupId, message, token, callback) => {
+    socket.on('message', (chatId, groupId, message, token) => {
         if (!token) {
-            callback('Not authorized, no token')
+            socket.emit('error', 'Not authorized, no token')
         }
-    
         try {
             const userId = jwt.verify(token, process.env.JWT_SECRET).id;
             Chat.findOne({
@@ -104,7 +74,7 @@ io.on('connection', (socket) => {
                 isActive: true
             }).then(chat => {
                 if(!chat) {
-                    callback(`No active chat`)
+                    socket.emit('error', 'No active chat')
                 } else {
                     // add: check is user in one of the groups
                     let newMessage = new Message({
@@ -116,14 +86,13 @@ io.on('connection', (socket) => {
                     })
     
                     newMessage.save().then(message => {
-                        // namespaces[groupId].emit('message', message.message)
-                        // io.emit('message', message.message)
-                        callback(`Message added!`)
+                        io.to(chatId).emit('message', 'New');
                     })
                 }
             })
         } catch (error) {
-            callback(`Server error`)
+            console.log(error)
+            socket.emit('error', 'Server error')
         }
     })
 

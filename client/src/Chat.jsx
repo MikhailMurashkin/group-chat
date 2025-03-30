@@ -19,51 +19,44 @@ const Chat = () => {
     const { login, user, logout } = useContext(AuthContext)
     const { groupId } = useParams()
 
+    const [chatId, setChatId] = useState("")
     const [messagesInfo, setMessagesInfo] = useState([])
     const [message, setMessage] = useState("")
+    const [joinedChat, setJoinedChat] = useState(false)
 
     const navigate = useNavigate()
 
     async function fetchData(){
-        let messagesInfo = await getChatData(groupId)
+        let chatInfo = await getChatData(groupId)
+
         setMessagesInfo(
-            messagesInfo.messagesList
+            chatInfo.messagesList
         )
-        console.log(messagesInfo)
+        await setChatId(
+            chatInfo.chatId
+        )
+
+        socket.emit('joinChat', chatInfo.chatId)
     }
 
     useEffect(() => {
 
         socket.connect()
-        // socket.on('message', (msg) => {
-        //     console.log(msg);
-        // });
+
+        socket.on('error', (msg) => {
+            console.log(msg)
+        });
+
+        socket.on('message', (msg) => {
+            fetchData()
+        });
 
         fetchData()
 
-        
-        // socket.emit('joinGroup', groupId)
-
-        // socket.emit('message', { groupId, msg: "My message" });
-
-        // Очистка при размонтировании компонента
-        // return () => {
-        //     socket.off('message');
-        // };
+        return () => {
+            socket.off('message');
+        };
     }, [])
-
-    const joinGroup = () => {
-        if (groupId) {
-            socket.emit('joinGroup', groupId);
-        }
-    };
-
-    const sendMessage = () => {
-        if (groupId && message) {
-            socket.emit('message', { groupId, msg: message });
-            setMessage('');
-        }
-    };
 
     const formatDate = (dateStr) => {
         let timestamp = Date.parse(dateStr)
@@ -133,16 +126,7 @@ const Chat = () => {
                     </div>
                 </div>
                 <Button onClick={() => {
-                    // sendMessage(groupId, message)
-
-                    socket.timeout(3000).emit('message', groupId, message,
-                        localStorage.getItem('token'), (err, response) => {
-                        if (err) {
-                            // the server did not acknowledge the event in the given delay
-                        } else {
-                            console.log(response)
-                        }
-                    })
+                    socket.emit('message', chatId, groupId, message, localStorage.getItem('token'))
                 }}>Сохранить</Button>
 
 
