@@ -10,9 +10,10 @@ import CloseButton from 'react-bootstrap/esm/CloseButton'
 import Form from 'react-bootstrap/Form'
 import Spinner from 'react-bootstrap/Spinner'
 import Card from 'react-bootstrap/Card'
-import { ArrowLeft, Copy, Pencil } from 'react-bootstrap-icons'
+import { ArrowLeft, Send } from 'react-bootstrap-icons'
 
 import socket from './modules/socket'
+import Loading from './Loading'
 
 const Chat = () => {
 
@@ -23,6 +24,8 @@ const Chat = () => {
     const [messagesInfo, setMessagesInfo] = useState([])
     const [message, setMessage] = useState("")
     const [joinedChat, setJoinedChat] = useState(false)
+    const [shouldScroll, setShouldScroll] = useState(true)   
+    const [fetched, setFetched] = useState(false)  
 
     const navigate = useNavigate()
 
@@ -37,6 +40,7 @@ const Chat = () => {
         )
 
         socket.emit('joinChat', chatInfo.chatId)
+        setFetched(true)
     }
 
     useEffect(() => {
@@ -48,6 +52,7 @@ const Chat = () => {
         });
 
         socket.on('message', (msg) => {
+            console.log(msg)
             fetchData()
         });
 
@@ -70,15 +75,25 @@ const Chat = () => {
         return day + '.' + month + '.' + year + ' ' + hour + ':' + minute
     }
 
+    const formatText = (text) => {
+        let formated = text.replaceAll("\r\n", "<br>")
+        formated = formated.replaceAll("\r", "<br>")
+        formated = formated.replaceAll("\n", "<br>")
+        return formated
+    }
+
 
     return (
         <>
+            {fetched &&
 
             <div className="chatPage">
+                <div className="top">
             <div className="back" onClick={() => navigate('/group/'+groupId)}>
                     <ArrowLeft size={24} />
                 </div>
-                <div className="groupsText">Чат</div>
+                <div className="groupsText" style={{paddingTop: '20px', paddingBottom: '0px'}}>Чат</div>
+                </div>
             
                 <div 
                 //style={{
@@ -87,11 +102,12 @@ const Chat = () => {
                 id='scrollablePanel' className='chatPanel'>
                     {messagesInfo.map((message, index) => {
                         
-                        if(index == messagesInfo.length - 1){
+                        if(index == messagesInfo.length - 1 && shouldScroll) {
                             setTimeout(() => {
                                 var panel = document.getElementById('scrollablePanel');
                                 panel.scrollTop = panel.scrollHeight;
                             }, 0)
+                            setShouldScroll(false)
                         }
 
                         return (
@@ -118,22 +134,28 @@ const Chat = () => {
                     </Form>
                 </Modal.Body> */}
                 <div className="messageWriteBlock">
-                    <div className="messageText">
+                    <div className="messageWrite">
                         <textarea className='messageArea' rows={3} value={message}
                         onChange={(e) => {
                             setMessage(e.target.value)
                         }} />
                     </div>
+                <Send size={48} style={{cursor: 'pointer'}} color='white' onClick={async () => {
+                    await socket.emit('message', chatId, groupId, message, localStorage.getItem('token'))
+                    setMessage('')
+                    await fetchData()
+                    setShouldScroll(true)
+                }} />
                 </div>
-                <Button onClick={() => {
-                    socket.emit('message', chatId, groupId, message, localStorage.getItem('token'))
-                }}>Сохранить</Button>
 
 
 
                 
 
             </div>
+            }
+            {!fetched && 
+            <Loading />}
         </>
     )
 }
