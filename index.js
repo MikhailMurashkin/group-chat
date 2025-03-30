@@ -6,19 +6,24 @@ import authRoutes from './routes/authRoutes.js'
 import groupRoutes from './routes/groupRoutes.js'
 import chatRoutes from './routes/chatRoutes.js'
 import { Server } from 'socket.io'
+import jwt from 'jsonwebtoken'
+
+import Chat from './models/Chat.js'
+import Message from './models/Message.js'
 
 import dotenv from 'dotenv'
 dotenv.config()
 
 
-const app = express();
-const server = createServer(app);
+const app = express()
+const server = createServer(app)
 
 const io = new Server(server, {
     cors: {
         origin: "http://localhost:3001"
-    }
-});
+    },
+    connectionStateRecovery: {}
+})
 
 app.use(express.json());
 
@@ -26,13 +31,13 @@ app.use(cors({
   origin: 'http://localhost:3001',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+}))
 
 mongoose.connect("mongodb+srv://murashkinmp:admin@cluster0.49nbo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0" || process.env.MONGO_URI, {
     family: 4
 })
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.log(err))
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log(err))
 
 
 
@@ -44,19 +49,87 @@ app.use('/chat', chatRoutes)
 //     // io.emit('')
 // })
 
-io.on('connection', (socket) => {
-    console.log('a user connected')
-    
-    socket.emit('message', 'hi')
+let namespaces = {}
 
-    socket.on('message', (msg, callback) => {
-        console.log('message: ' + msg)
-        callback(`Got your message: ${msg}`)
+io.on('connection', (socket) => {
+
+    socket.on('joinGroup', (groupId) => {
+        socket.join(groupId);
+        console.log(`User ${socket.id} joined group ${groupId}`);
+    });
+
+    socket.on('message', ({ groupId, msg }) => {
+        console.log(`Message from group ${groupId}:`, msg);
+        // Отправляем сообщение всем в комнате
+        io.to(groupId).emit('message', `Message from ${socket.id}: ${msg}`);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+
+    // socket.on('joinNamespace', (groupId) => {
+    //     console.log('joinNamespace ', groupId)
+    //     if (!namespaces[groupId]) {
+    //         console.log('Создаем')
+    //         namespaces[groupId] = io.of(`/namespace_${groupId}`);
+    //         namespaces[groupId].on('connection', (nsSocket) => {
+    //             console.log(`User connected to namespace: /namespace_${groupId}`);
+
+    //             nsSocket.on('message', (message) => {
+    //                 console.log(`Message from /namespace_${groupId}: ${message}`);
+    //                 nsSocket.emit('message', `Echo: ${message}`);
+    //             });
+
+    //             nsSocket.on('disconnect', () => {
+    //                 console.log(`User disconnected from namespace: /namespace_${groupId}`);
+    //             });
+    //         });
+
+    //     }
+    //     socket.join(`/namespace_${groupId}`);
+    //     namespaces[groupId].to(socket.id).emit('message', "MESSAGE FROM NAMESPACE");
+    // })
+
+
+    socket.on('message', (groupId, message, token, callback) => {
+        if (!token) {
+            callback('Not authorized, no token')
+        }
+    
+        try {
+            const userId = jwt.verify(token, process.env.JWT_SECRET).id;
+            Chat.findOne({
+                $or: [{groupId1: groupId}, {groupId2: groupId}],
+                isActive: true
+            }).then(chat => {
+                if(!chat) {
+                    callback(`No active chat`)
+                } else {
+                    // add: check is user in one of the groups
+                    let newMessage = new Message({
+                        groupId,
+                        message,
+                        authorId: userId,
+                        chatId: chat._id,
+                        date: Date.now()
+                    })
+    
+                    newMessage.save().then(message => {
+                        // namespaces[groupId].emit('message', message.message)
+                        // io.emit('message', message.message)
+                        callback(`Message added!`)
+                    })
+                }
+            })
+        } catch (error) {
+            callback(`Server error`)
+        }
     })
 
     socket.on('disconnect', () => {
-        console.log('user disconnected')
-    });
+        console.log('D')
+    })
 });
   
 

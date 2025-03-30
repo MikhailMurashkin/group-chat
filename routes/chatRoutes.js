@@ -24,19 +24,29 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                 res.status(400).json({ message: 'No active chat' });
             } else {
                 // add: check is user in one of the groups
-                Message.find({
-                    chatId: chat.chatId
-                }).then(messages => {
-                    let messagesList = []
-                    messages.forEach(message => {
-                        messagesList.push({
-                            authorId: message.authorId,
-                            isFromMyGroup: groupId == message.groupId ? true : false,
-                            date: message.date
+                User.find({}).then(users => {
+                    Message.find({
+                        chatId: chat._id
+                    }).then(messages => {
+                        let messagesList = []
+                        messages.forEach(message => {
+                            let userName = ''
+                            users.forEach(user => {
+                                if(user.id == message.authorId){
+                                    userName = user.name
+                                }
+                            })
+                            messagesList.push({
+                                message: message.message,
+                                authorId: message.authorId,
+                                name: userName,
+                                isFromMyGroup: groupId == message.groupId ? true : false,
+                                date: message.date
+                            })
                         })
+    
+                        res.status(200).json({ messagesList })
                     })
-
-                    res.status(200).json({ messagesList })
                 })
             }
         })
@@ -61,11 +71,12 @@ chatRoutes.post('/sendMessage', protect, async (req, res) => {
                     groupId,
                     message,
                     authorId: req.user,
-                    chatId: chat.chatId,
+                    chatId: chat._id,
                     date: Date.now()
                 })
 
                 newMessage.save().then(message => {
+                    console.log(message)
                     res.status(200).json({ message: 'added' })
                 })
             }
