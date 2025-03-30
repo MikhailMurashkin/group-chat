@@ -6,6 +6,7 @@ import { getGroupInfoById, startGroupSearch, getFoundGroupInfo,
     foundGroupDecision
  } from './modules/Api'
 import socket from './modules/socket'
+import Loading from './Loading'
 
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
@@ -13,7 +14,7 @@ import CloseButton from 'react-bootstrap/esm/CloseButton'
 import Form from 'react-bootstrap/Form'
 import Spinner from 'react-bootstrap/Spinner'
 import Card from 'react-bootstrap/Card'
-import { ArrowLeft, Copy, Pencil } from 'react-bootstrap-icons'
+import { ArrowLeft, Copy, Pencil, Chat } from 'react-bootstrap-icons'
 
 const Group = () => {
 
@@ -79,9 +80,14 @@ const Group = () => {
         // ZAPROS!!!!
     }
 
+    async function makeDecision (decision) {
+        await foundGroupDecision(groupId, decision)
+        await fetchData()
+    }
+
     return (
         <>
-            <Button as="a" variant="primary" onClick={()=>{
+            {/* <Button as="a" variant="primary" onClick={()=>{
                 socket.timeout(5000).emit('message', message, (err, response) => {
                     if (err) {
                         // the server did not acknowledge the event in the given delay
@@ -106,7 +112,7 @@ const Group = () => {
                 startGroupSearch(groupId)
             }}>
                 Начать поиск
-            </Button>
+            </Button> */}
             {/* {user.email} */}
 
             {fetched &&
@@ -125,7 +131,7 @@ const Group = () => {
                                 <Copy size={16} />
                             </div>
                         </div>
-                        {(!groupInfo.inSearch && groupInfo?.groupFoundTodayId?.length == 0) &&
+                        {(!groupInfo.inSearch && (!groupInfo?.groupFoundTodayId || groupInfo?.groupFoundTodayId?.length == 0)) &&
                         <div className="search">
                             <Button onClick={async ()=>{
                             await startGroupSearch(groupId)
@@ -149,26 +155,42 @@ const Group = () => {
                                 <Card.Text>
                                     {groupFound?.description}
                                 </Card.Text>
-                                {groupInfo.isCreator &&
+                                {(groupInfo.isCreator && !groupInfo?.myDecision && groupInfo.myDecision != false) &&
                                 <div className="buttonsFound">
                                     <Button variant="primary" onClick={() => {
-                                        foundGroupDecision(groupId, true)
+                                        makeDecision(true)
                                     }}>Начать общение</Button>
                                     <Button variant="secondary" onClick={() => {
-                                        foundGroupDecision(groupId, false)
+                                        makeDecision(false)
                                     }}>Отказаться</Button>
                                 </div>}
-                                {!groupInfo.isCreator &&
+                                {groupInfo?.chat && 
+                                <Button variant="dark" className='chatButton' onClick={() => {
+                                    navigate('./chat')
+                                }}>
+                                    <Chat size={18} />
+                                    {' Чат'}
+                                </Button>}
+                                {(!groupInfo.isCreator && !groupInfo?.myDecision) &&
                                 <Card.Text className="text-muted">Администратор еще не принял решение</Card.Text>
+                                }
+                                {(groupInfo?.myDecision && !groupFound?.foundGroupDecision && groupFound.foundGroupDecision != false) &&
+                                <Card.Text className="text-muted">Ожидаем ответа от другой группы...</Card.Text>
+                                }
+                                {groupInfo?.myDecision == false &&
+                                <Card.Text className="text-muted">Вы отказались от общения</Card.Text>
+                                }
+                                {groupFound?.foundGroupDecision == false &&
+                                <Card.Text className="text-muted">К сожалению, группа отказалась с вами общаться</Card.Text>
                                 }
                                 </Card.Body>
                             </Card>
                             
-                            {groupInfo.chat &&
+                            {/* {groupInfo.chat &&
                                 <Button variant="primary" onClick={() => {
                                     navigate('./chat')
                                 }}>Открыть чат</Button>
-                            }
+                            } */}
                         </div>
                     }
 
@@ -201,6 +223,8 @@ const Group = () => {
 
             </div>
             }
+            {!fetched && 
+            <Loading />}
 
             <Modal
                 show={modalEditShow}
