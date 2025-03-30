@@ -44,8 +44,7 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                                 date: message.date
                             })
                         })
-    
-                        res.status(200).json({ messagesList })
+                        res.status(200).json({ messagesList, chatId: chat._id })
                     })
                 })
             }
