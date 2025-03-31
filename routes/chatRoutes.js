@@ -27,7 +27,7 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                 User.find({}).then(users => {
                     Message.find({
                         chatId: chat._id
-                    }).then(messages => {
+                    }).then(async messages => {
                         let messagesList = []
                         messages.forEach(message => {
                             let userName = ''
@@ -44,7 +44,12 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                                 date: message.date
                             })
                         })
-                        res.status(200).json({ messagesList, chatId: chat._id })
+                        let foundGroupId = chat.groupId1 == groupId ? chat.groupId2 : chat.groupId1
+                        let foundGroup = await Group.findOne({
+                            id: foundGroupId
+                        })
+                        res.status(200).json({ messagesList, chatId: chat._id, 
+                            foundGroupName: foundGroup.name })
                     })
                 })
             }
