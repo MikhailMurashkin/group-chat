@@ -12,6 +12,7 @@ import Chat from './models/Chat.js'
 import Message from './models/Message.js'
 
 import dotenv from 'dotenv'
+import Group from './models/Group.js'
 dotenv.config()
 
 
@@ -25,7 +26,7 @@ const io = new Server(server, {
     connectionStateRecovery: {}
 })
 
-app.use(express.json());
+app.use(express.json())
 
 app.use(cors({
   origin: 'http://localhost:3001',
@@ -51,16 +52,13 @@ let namespaces = {}
 
 io.on('connection', (socket) => {
 
-    socket.emit('message', 'Sombody connected');
+    socket.emit('message', 'Sombody connected')
 
     socket.on('joinChat', (chatId) => {
-        socket.join(chatId);
-        console.log(`User ${socket.id} joined chat ${chatId} !`);
+        socket.join(chatId)
+        console.log(`User ${socket.id} joined chat ${chatId} !`)
     })
 
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-    })
 
 
     socket.on('message', (chatId, groupId, message, token) => {
@@ -68,7 +66,7 @@ io.on('connection', (socket) => {
             socket.emit('error', 'Not authorized, no token')
         }
         try {
-            const userId = jwt.verify(token, process.env.JWT_SECRET).id;
+            const userId = jwt.verify(token, process.env.JWT_SECRET).id
             Chat.findOne({
                 $or: [{groupId1: groupId}, {groupId2: groupId}],
                 isActive: true
@@ -87,7 +85,7 @@ io.on('connection', (socket) => {
     
                     console.log("message: ", message)
                     newMessage.save().then(message => {
-                        io.to(chatId).emit('message', 'New');
+                        io.to(chatId).emit('message', 'New')
                     })
                 }
             })
@@ -97,10 +95,58 @@ io.on('connection', (socket) => {
         }
     })
 
-    socket.on('disconnect', () => {
-        console.log('D')
+    socket.on('open', async (chatId, groupId, token) => {
+        if (!token) {
+            socket.emit('error', 'Not authorized, no token')
+        }
+        try {
+            const userId = jwt.verify(token, process.env.JWT_SECRET).id;
+            let chat = await Chat.findOne({
+                $or: [{groupId1: groupId}, {groupId2: groupId}],
+                isActive: true
+            })
+            if(!chat) {
+                return socket.emit('error', 'No active chat')
+            }
+            let group = await Group.findOne({
+                id: groupId,
+                creatorId: userId
+            })
+            if(!group) {
+                return socket.emit('error', 'No permission')
+            }
+            console.log(chat)
+
+            let newMessage = new Message({
+                groupId,
+                authorId: userId,
+                chatId: chat._id,
+                date: Date.now(),
+                type: 'open'
+            })
+
+            let openMessage = await Message.findOne({
+                chatId: chat._id,
+                type: 'open',
+                groupId: {$ne: groupId }
+            })
+            if(openMessage) {
+                let c = await Chat.findByIdAndUpdate(chat._id, {
+                    open: true
+                })
+                newMessage.save().then(message => {
+                    io.to(chatId).emit('message', 'New');
+                })
+            }
+        } catch (error) {
+            socket.emit('error', 'Server error')
+        }
     })
-});
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id)
+    })
+})
   
 
 

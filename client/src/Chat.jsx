@@ -96,6 +96,11 @@ const Chat = () => {
                 </div>
                 <div className="groupsText" style={{paddingTop: '20px', paddingBottom: '0px'}}>Чат</div>
                 </div>
+
+                <div onClick={async () => {
+                    await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
+                }}
+                >Открыться</div>
             
                 <div 
                 //style={{

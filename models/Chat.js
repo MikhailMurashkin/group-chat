@@ -15,6 +15,10 @@ const chatSchema = new mongoose.Schema({
     },
     closedDate: {
         type: Date
+    },
+    open: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true })
 

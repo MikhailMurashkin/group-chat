@@ -23,7 +23,6 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
             if(!chat) {
                 res.status(400).json({ message: 'No active chat' });
             } else {
-                // add: check is user in one of the groups
                 User.find({}).then(users => {
                     Message.find({
                         chatId: chat._id
@@ -44,12 +43,25 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                                 date: message.date
                             })
                         })
+
+                        let openMessage = await Message.findOne({
+                            chatId: chat._id,
+                            groupId,
+                            type: 'open'
+                        })
+
                         let foundGroupId = chat.groupId1 == groupId ? chat.groupId2 : chat.groupId1
                         let foundGroup = await Group.findOne({
                             id: foundGroupId
                         })
+
+                        let openMessages = messages
+
                         res.status(200).json({ messagesList, chatId: chat._id, 
-                            foundGroupName: foundGroup.name })
+                            foundGroupName: foundGroup.name,
+                            open: chat.open,
+                            sentOpen: openMessage ? true : false
+                        })
                     })
                 })
             }
