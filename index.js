@@ -45,9 +45,7 @@ app.use('/auth', authRoutes)
 app.use('/groups', groupRoutes)
 app.use('/chat', chatRoutes)
 
-// app.get('/add', (req, res) => {
-//     // io.emit('')
-// })
+
 
 let namespaces = {}
 

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useState, useContext, useEffect } from 'react'
 import { AuthContext } from './modules/AuthContext'
 import { getGroupInfoById, startGroupSearch, getFoundGroupInfo,
-    foundGroupDecision
+    foundGroupDecision, updateGroupDescription
  } from './modules/Api'
 import socket from './modules/socket'
 import Loading from './Loading'
@@ -35,6 +35,7 @@ const Group = () => {
     const [showList, setShowList] = useState(false)
     const [fetched, setFetched] = useState(false)
     const [newGroupDescription, setNewGroupDescription] = useState('')
+    const [updatedDescription, setUpdatedDescription] = useState('')
     const [modalEditShow, setModalEditShow] = useState(false)
     const [groupFound, setGroupFound] = useState({})
     const navigate = useNavigate()
@@ -199,7 +200,9 @@ const Group = () => {
                     <div className="descriptionBlock">Описание: 
                         {groupInfo.isCreator &&
                         <Pencil className='editButton' size={18} onClick={openEditModal} />}
-                        <div className="description">{groupInfo.description}</div>
+                        <div className="description">
+                            {updatedDescription ? updatedDescription : groupInfo.description}
+                        </div>
                     </div>
                     <div className="participants">
                         <div className="textParticipants">Участники: 
@@ -251,10 +254,12 @@ const Group = () => {
                 </Modal.Body>
                 <Modal.Footer>
                 <Button variant='secondary' onClick={() => setModalEditShow(false)}>Отмена</Button>
-                <Button onClick={
-                    //варечка умница
-                    editDEscription
-                }>Сохранить</Button>
+                <Button onClick={() => {
+                    updateGroupDescription(newGroupDescription, groupId).then(()=>{
+                        setUpdatedDescription(newGroupDescription)
+                        setModalEditShow(false)
+                    })
+                }}>Сохранить</Button>
                 </Modal.Footer>
             </Modal>
         </>

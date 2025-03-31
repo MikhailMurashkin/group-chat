@@ -127,6 +127,24 @@ groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
     }
 })
 
+groupRoutes.post('/updateGroupDescription', protect, async (req, res) => {
+    try {
+        Group.findOneAndUpdate({id: req.body.groupId, creatorId: req.user }, {
+          description: req.body.description
+        })
+        .then(group => {
+          if (!group) {
+            return res.status(400).json({ message: "No permission" });
+          } else {
+            res.status(200).json({message: "Updated!"})
+          }
+        })
+    } catch (error) {
+      console.log(error)
+        res.status(500).json({ message: 'Server error' });
+    }
+})
+
 groupRoutes.post('/startGroupSearch', protect, (req, res) => {
     try {
         GroupMatch.findOne({

@@ -10,18 +10,18 @@ export const createGroup = async (groupName, groupDescription) => {
     body: JSON.stringify({ 
       groupName, groupDescription
     }),
-  });
+  })
 
-  const data = await response.json();
+  const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.message || 'Не удалось создать группу');
+    throw new Error(data.message || 'Не удалось создать группу')
   }
 
   window.location = `group/${data.groupId}`
 
   return data;
-};
+}
 
 export const getGroupsByUserId = async () => {
   const response = await fetch(`${API_URL}/groups/getGroupsByUserId`, {
@@ -36,11 +36,11 @@ export const getGroupsByUserId = async () => {
   console.log(data)
 
   if (!response.ok) {
-    throw new Error(data.message || 'Не удалось получить список групп');
+    throw new Error(data.message || 'Не удалось получить список групп')
   }
 
-  return data;
-};
+  return data
+}
 
 export const getGroupInfoById = async (groupId) => {
   const response = await fetch(`${API_URL}/groups/getGroupInfoById`, {
@@ -54,15 +54,40 @@ export const getGroupInfoById = async (groupId) => {
     }),
   });
 
-  const data = await response.json();
+  const data = await response.json()
   console.log(data)
 
   if (!response.ok) {
     throw new Error(data.message || 'Не удалось получить список групп');
   }
 
-  return data;
-};
+  return data
+}
+
+export const updateGroupDescription = async (description, groupId) => {
+  const response = await fetch(`${API_URL}/groups/updateGroupDescription`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({ 
+      description,
+      groupId
+    })
+  })
+
+  const data = await response.json()
+
+  console.log(data)
+
+  if (!response.ok) {
+    throw new Error(data.message);
+  }
+
+  return data
+}
+
 
 export const joinGroupByCode = async (inviteCode) => {
   const response = await fetch(`${API_URL}/groups/joinGroupByCode`, {
