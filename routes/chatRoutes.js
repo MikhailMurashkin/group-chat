@@ -102,10 +102,20 @@ chatRoutes.post('/closeChat', protect, async (req, res) => {
                 isActive: true
             }, {
                 isActive: false
-            }).then(chat => {
+            }).then(async chat => {
                 if(!chat) {
                     return res.status(400).json({ message: 'Server error' })
                 }
+                await Group.findOneAndUpdate({
+                    id: chat.groupId1
+                }, {
+                    complete: false
+                })
+                await Group.findOneAndUpdate({
+                    id: chat.groupId2
+                }, {
+                    complete: false
+                })
                 res.status(200).json({ message: 'chat closed' })
                 
             })
