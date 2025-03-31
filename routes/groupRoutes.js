@@ -78,26 +78,39 @@ groupRoutes.post('/getGroupInfoById', protect, async (req, res) => {
             groupDoc.participants = participantsExtended
 
 
-            GroupMatch.findOne({
+            Chat.findOne({
               $or: [{groupId1: req.body.groupId}, {groupId2: req.body.groupId}],
-              date: moscowTime.format('YYYY-MM-DD')
-            }).then(todaysMatch => {
-              if (todaysMatch) {
-                console.log(moscowTime.format('YYYY-MM-DD'))
-                if (todaysMatch.groupId1 == req.body.groupId) {
-                  groupDoc.groupFoundTodayId = todaysMatch.groupId2
-                  groupDoc.myDecision = todaysMatch.groupDecision1
+              isActive: true
+            }).then(chat => {
+              if (chat) {
+                if (chat.groupId1 == req.body.groupId) {
+                  groupDoc.groupFoundId = chat.groupId2
                 }
-                if (todaysMatch.groupId2 == req.body.groupId) {
-                  groupDoc.groupFoundTodayId = todaysMatch.groupId1
-                  groupDoc.myDecision = todaysMatch.groupDecision2
+                if (chat.groupId2 == req.body.groupId) {
+                  groupDoc.groupFoundId = chat.groupId1
                 }
-                
-                if(todaysMatch.groupDecision1 && todaysMatch.groupDecision2) {
-                  groupDoc.chat = true
-                }
+                groupDoc.chat = true
+                res.json(groupDoc)
+              } else {
+                GroupMatch.findOne({
+                  $or: [{groupId1: req.body.groupId}, {groupId2: req.body.groupId}],
+                  date: moscowTime.format('YYYY-MM-DD')
+                }).then(todaysMatch => {
+                  if (todaysMatch) {
+                      if (todaysMatch.groupId1 == req.body.groupId) {
+                        groupDoc.groupFoundId = todaysMatch.groupId2
+                        groupDoc.myDecision = todaysMatch.groupDecision1
+                      }
+                      if (todaysMatch.groupId2 == req.body.groupId) {
+                        groupDoc.groupFoundId = todaysMatch.groupId1
+                        groupDoc.myDecision = todaysMatch.groupDecision2
+                      }
+                      res.json(groupDoc)
+                  } else {
+                    res.json(groupDoc)
+                  }
+                })
               }
-              res.json(groupDoc);
             })
           })
         })
@@ -123,7 +136,7 @@ groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
         })
     } catch (error) {
       console.log(error)
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error' })
     }
 })
 
@@ -134,14 +147,14 @@ groupRoutes.post('/updateGroupDescription', protect, async (req, res) => {
         })
         .then(group => {
           if (!group) {
-            return res.status(400).json({ message: "No permission" });
+            return res.status(400).json({ message: "No permission" })
           } else {
             res.status(200).json({message: "Updated!"})
           }
         })
     } catch (error) {
       console.log(error)
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error' })
     }
 })
 
@@ -152,53 +165,66 @@ groupRoutes.post('/startGroupSearch', protect, (req, res) => {
           date: moscowTime.format('YYYY-MM-DD')
         }).then(todaysMatch => {
           if (todaysMatch) {
-            console.log(todaysMatch)
-            return res.status(400).json({ message: 'Group was found already today' });
+            return res.status(400).json({
+              message: 'A group have been found today already'
+            });
           }
 
-          Group.findOneAndUpdate({id: req.body.groupId}, {
-            $set: {
-              complete: true,
-              inSearch: true
-            }
-          })
-          .then(group => {
-            if (!group || group.creatorId != req.user) {
-              return res.status(400).json({ message: 'No permission' });
-            }
-            if (group.inSearch) {
-              return res.status(400).json({ message: 'Already in search' });
-            }
-  
-            Group.findOneAndUpdate({
-              inSearch: true,
-              id: {$ne: req.body.groupId},
-              creatorId: {$ne: req.user}
-            }, {
-              $set: {
-                inSearch: false
-              }
-            }).then(foundGroup => {
-              if (!foundGroup) {
-                return res.status(200).json({ message: 'Searching for groups..' });
-              }
-              console.log("found: ", foundGroup.id)
-
+          Chat.findOne({
+            $or: [{groupId1: req.body.groupId}, {groupId2: req.body.groupId}],
+            isActive: true
+          }).then(chat => {
+            if (chat) {
+              return res.status(400).json({
+                message: 'You have an active chat already'
+              })
+            } else {
               Group.findOneAndUpdate({id: req.body.groupId}, {
                 $set: {
-                  inSearch: false
+                  complete: true,
+                  inSearch: true,
+                  searchDate: Date.now()
                 }
-              }).then(group => {
-                const groupMatch = new GroupMatch({
-                  groupId1: foundGroup.id,
-                  groupId2: group.id,
-                  date: moscowTime.format('YYYY-MM-DD')
-                })
-                groupMatch.save().then(groupMatch => {
-                  res.status(200).json(groupMatch)
+              })
+              .then(group => {
+                if (!group || group.creatorId != req.user) {
+                  return res.status(400).json({ message: 'No permission' });
+                }
+                if (group.inSearch) {
+                  return res.status(400).json({ message: 'Already in search' });
+                }
+      
+                Group.findOneAndUpdate({
+                  inSearch: true,
+                  id: {$ne: req.body.groupId},
+                  creatorId: {$ne: req.user}
+                }, {
+                  $set: {
+                    inSearch: false
+                  }
+                }, { upsert: false, sort: { 'searchDate': 1 } }).then(foundGroup => {
+                  if (!foundGroup) {
+                    return res.status(200).json({ message: 'Searching for groups..' });
+                  }
+                  console.log("found: ", foundGroup.id)
+    
+                  Group.findOneAndUpdate({id: req.body.groupId}, {
+                    $set: {
+                      inSearch: false
+                    }
+                  }).then(group => {
+                    const groupMatch = new GroupMatch({
+                      groupId1: foundGroup.id,
+                      groupId2: group.id,
+                      date: moscowTime.format('YYYY-MM-DD')
+                    })
+                    groupMatch.save().then(groupMatch => {
+                      res.status(200).json(groupMatch)
+                    })
+                  })
                 })
               })
-            })
+            }
           })
         })
     } catch (error) {
@@ -209,44 +235,76 @@ groupRoutes.post('/startGroupSearch', protect, (req, res) => {
 
 groupRoutes.post('/getFoundGroupInfo', protect, async (req, res) => {
   try {
-    GroupMatch.findOne({
+    Chat.findOne({
       $or: [{groupId1: req.body.foundGroupId}, {groupId2: req.body.foundGroupId}],
-      date: moscowTime.format('YYYY-MM-DD')
-    }).then(todaysMatch => {
-      if(!todaysMatch) {
-        return res.status(400).json({ message: 'Not found' })
-      }
-
-      let myGroupId = ''
-      let foundGroupDecision
-      let myGroupDecision = null
-      if (todaysMatch.groupId1 == req.body.foundGroupId) {
-        myGroupId = todaysMatch.groupId2
-        myGroupDecision = todaysMatch.groupDecision2
-        foundGroupDecision = todaysMatch.groupDecision1
-      }
-      if (todaysMatch.groupId2 == req.body.foundGroupId) {
-        myGroupId = todaysMatch.groupId1
-        myGroupDecision = todaysMatch.groupDecision1
-        foundGroupDecision = todaysMatch.groupDecision2
-      }
-      Group.findOne({id: myGroupId, participantsId: {$in: req.user}})
-      .then(group => {
-        if(group) {
-          Group.findOne({id: req.body.foundGroupId})
-          .then(foundGroup => {
-            let foundGroupInfo = {
-              name: foundGroup.name,
-              description: foundGroup.description
+      isActive: true
+    }).then(chat => {
+      GroupMatch.findOne({
+        $or: [{groupId1: req.body.foundGroupId}, {groupId2: req.body.foundGroupId}],
+        date: moscowTime.format('YYYY-MM-DD')
+      }).then(todaysMatch => {
+        if(!todaysMatch && !chat) {
+          return res.status(400).json({ message: 'Not found' })
+        }
+  
+        if (chat) {
+          let myGroupId = ''
+          if (chat.groupId1 == req.body.foundGroupId) {
+            myGroupId = chat.groupId2
+          }
+          if (chat.groupId2 == req.body.foundGroupId) {
+            myGroupId = chat.groupId1
+          }
+          
+          console.log("myGroupId ", myGroupId)
+          Group.findOne({id: myGroupId, participantsId: {$in: req.user}})
+          .then(group => {
+            if(group) {
+              Group.findOne({id: req.body.foundGroupId})
+              .then(foundGroup => {
+                let foundGroupInfo = {
+                  name: foundGroup.name,
+                  description: foundGroup.description
+                }
+                res.status(200).json(foundGroupInfo)
+              })
+            } else {
+              res.status(400).json({ message: 'No permission' })
             }
-
-            if (myGroupDecision == true) {
-              foundGroupInfo.foundGroupDecision = foundGroupDecision
-            }
-            res.status(200).json(foundGroupInfo)
           })
         } else {
-          res.status(400).json({ message: 'No permission' })
+          let myGroupId = ''
+          let foundGroupDecision
+          let myGroupDecision = null
+          if (todaysMatch.groupId1 == req.body.foundGroupId) {
+            myGroupId = todaysMatch.groupId2
+            myGroupDecision = todaysMatch.groupDecision2
+            foundGroupDecision = todaysMatch.groupDecision1
+          }
+          if (todaysMatch.groupId2 == req.body.foundGroupId) {
+            myGroupId = todaysMatch.groupId1
+            myGroupDecision = todaysMatch.groupDecision1
+            foundGroupDecision = todaysMatch.groupDecision2
+          }
+          Group.findOne({id: myGroupId, participantsId: {$in: req.user}})
+          .then(group => {
+            if(group) {
+              Group.findOne({id: req.body.foundGroupId})
+              .then(foundGroup => {
+                let foundGroupInfo = {
+                  name: foundGroup.name,
+                  description: foundGroup.description
+                }
+    
+                if (myGroupDecision == true) {
+                  foundGroupInfo.foundGroupDecision = foundGroupDecision
+                }
+                res.status(200).json(foundGroupInfo)
+              })
+            } else {
+              res.status(400).json({ message: 'No permission' })
+            }
+          })
         }
       })
     })

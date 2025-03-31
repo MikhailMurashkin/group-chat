@@ -12,6 +12,9 @@ const chatSchema = new mongoose.Schema({
     },
     chatId: {
         type: String
+    },
+    closedDate: {
+        type: Date
     }
 }, { timestamps: true })
 

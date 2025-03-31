@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useState, useContext, useEffect } from 'react'
 import { AuthContext } from './modules/AuthContext'
 import { getGroupInfoById, startGroupSearch, getFoundGroupInfo,
-    foundGroupDecision, updateGroupDescription
+    foundGroupDecision, updateGroupDescription, closeChat
  } from './modules/Api'
 import socket from './modules/socket'
 import Loading from './Loading'
@@ -46,9 +46,8 @@ const Group = () => {
             info
         )
         try {
-        let found = await getFoundGroupInfo(info.groupFoundTodayId)
-        console.log(found)
-        setGroupFound(found)
+            let found = await getFoundGroupInfo(info.groupFoundId)
+            setGroupFound(found)
         } catch (e) {
             console.log(e)
         }
@@ -132,7 +131,7 @@ const Group = () => {
                                 <Copy size={16} />
                             </div>
                         </div>
-                        {(!groupInfo.inSearch && (!groupInfo?.groupFoundTodayId || groupInfo?.groupFoundTodayId?.length == 0)) &&
+                        {(!groupInfo.inSearch && (!groupInfo?.groupFoundId || groupInfo?.groupFoundId?.length == 0)) &&
                         <div className="search">
                             <Button onClick={async ()=>{
                             await startGroupSearch(groupId)
@@ -147,7 +146,7 @@ const Group = () => {
                         }
                         
                     </div>}
-                    {groupInfo.groupFoundTodayId?.length > 0 &&
+                    {groupInfo.groupFoundId?.length > 0 && !(groupFound?.foundGroupDecision && !groupInfo.chat) &&
                         <div className="foundGroup">
                             <Card className="text-center">
                                 <Card.Header>Найдена группа для общения</Card.Header>
@@ -156,7 +155,7 @@ const Group = () => {
                                 <Card.Text>
                                     {groupFound?.description}
                                 </Card.Text>
-                                {(groupInfo.isCreator && !groupInfo?.myDecision && groupInfo.myDecision != false) &&
+                                {(!groupInfo.chat && groupInfo.isCreator && !groupInfo?.myDecision && groupInfo.myDecision != false) &&
                                 <div className="buttonsFound">
                                     <Button variant="primary" onClick={() => {
                                         makeDecision(true)
@@ -166,12 +165,21 @@ const Group = () => {
                                     }}>Отказаться</Button>
                                 </div>}
                                 {groupInfo?.chat && 
-                                <Button variant="dark" className='chatButton' onClick={() => {
-                                    navigate('./chat')
-                                }}>
-                                    <Chat size={18} />
-                                    {' Чат'}
-                                </Button>}
+                                    <>
+                                        <Button variant="dark" className='chatButton' onClick={() => {
+                                            navigate('./chat')
+                                        }}>
+                                            <Chat size={18} />
+                                            {' Чат'}
+                                        </Button>
+                                        <Button variant="dark" className='chatButton' onClick={() => {
+                                            closeChat(groupId)
+                                        }}>
+                                            <Chat size={18} />
+                                            {'Закрыть чат'}
+                                        </Button>
+                                    </>
+                                }
                                 {(!groupInfo.isCreator && !groupInfo?.myDecision) &&
                                 <Card.Text className="text-muted">Администратор еще не принял решение</Card.Text>
                                 }
@@ -193,6 +201,9 @@ const Group = () => {
                                 }}>Открыть чат</Button>
                             } */}
                         </div>
+                    }
+                    {groupFound?.foundGroupDecision && !groupInfo.chat &&
+                        <h1>Поиск нового чата будет доступен завтра</h1>
                     }
 
                 <div className="textBlock">

@@ -25,12 +25,19 @@ const Chat = () => {
     const [message, setMessage] = useState("")
     const [joinedChat, setJoinedChat] = useState(false)
     const [shouldScroll, setShouldScroll] = useState(true)   
-    const [fetched, setFetched] = useState(false)  
+    const [fetched, setFetched] = useState(false) 
+    const [chatLoaded, setChatLoaded] = useState(false)
 
     const navigate = useNavigate()
 
     async function fetchData(){
-        let chatInfo = await getChatData(groupId)
+        let chatInfo
+        try{
+            chatInfo = await getChatData(groupId)
+        }
+        catch(err){
+            navigate('/group/'+groupId)
+        }
 
         setMessagesInfo(
             chatInfo.messagesList
@@ -53,7 +60,9 @@ const Chat = () => {
 
         socket.on('message', (msg) => {
             console.log(msg)
-            fetchData()
+            fetchData().then(()=>{
+                setShouldScroll(true)
+            })
         });
 
         fetchData()
@@ -104,8 +113,13 @@ const Chat = () => {
                         
                         if(index == messagesInfo.length - 1 && shouldScroll) {
                             setTimeout(() => {
-                                var panel = document.getElementById('scrollablePanel');
-                                panel.scrollTop = panel.scrollHeight;
+                                var panel = document.getElementById('scrollablePanel')
+                                if(chatLoaded){
+                                    panel.scrollTo({top: panel.scrollHeight, behavior: 'smooth'})
+                                } else {
+                                    panel.scrollTo({top: panel.scrollHeight})
+                                    setChatLoaded(true)
+                                }
                             }, 0)
                             setShouldScroll(false)
                         }

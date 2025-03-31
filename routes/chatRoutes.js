@@ -87,4 +87,34 @@ chatRoutes.post('/sendMessage', protect, async (req, res) => {
 })
 
 
+chatRoutes.post('/closeChat', protect, async (req, res) => {
+    try {
+        const { groupId, message } = req.body
+        Group.findOne({
+            id: groupId,
+            creatorId: req.user
+        }).then(group => {
+            if(!group){
+                return res.status(400).json({ message: 'Server error' })
+            }
+            Chat.findOneAndUpdate({
+                $or: [{groupId1: groupId}, {groupId2: groupId}],
+                isActive: true
+            }, {
+                isActive: false
+            }).then(chat => {
+                if(!chat) {
+                    return res.status(400).json({ message: 'Server error' })
+                }
+                res.status(200).json({ message: 'chat closed' })
+                
+            })
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
+
 export default chatRoutes

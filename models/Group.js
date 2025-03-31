@@ -30,6 +30,9 @@ const groupSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    searchDate: {
+        type: Date
+    }
     // chatGroupId: {
     //     type: String
     // }
