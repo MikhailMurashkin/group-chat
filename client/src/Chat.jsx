@@ -27,6 +27,7 @@ const Chat = () => {
     const [shouldScroll, setShouldScroll] = useState(true)   
     const [fetched, setFetched] = useState(false) 
     const [chatLoaded, setChatLoaded] = useState(false)
+    const [sentOpen, setSentOpen] = useState(false)
 
     const navigate = useNavigate()
 
@@ -42,8 +43,11 @@ const Chat = () => {
         setMessagesInfo(
             chatInfo.messagesList
         )
-        await setChatId(
+        setChatId(
             chatInfo.chatId
+        )
+        setSentOpen(
+            chatInfo.sentOpen
         )
 
         socket.emit('joinChat', chatInfo.chatId)
@@ -95,15 +99,18 @@ const Chat = () => {
                     <ArrowLeft size={24} />
                 </div>
                 <div className="groupsText" style={{paddingTop: '20px', paddingBottom: '0px'}}>Чат</div>
-                <div className="openButtonBlock">
-                        <Button variant='outline-dark'>
+                <div className="openButtonBlock" style={{opacity: sentOpen ? '0.5' : '1'}}>
+                        <Button variant='outline-dark' onClick={async () => {
+                            await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
+                        }}  disabled={sentOpen ? true : false}>
                             Открыться
                         </Button>
-                    </div>
+                    </div>  
                 </div>
 
                 <div onClick={async () => {
                     await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
+                    setSentOpen(true)
                 }}
                 >Открыться</div>
             
@@ -127,21 +134,42 @@ const Chat = () => {
                             setShouldScroll(false)
                         }
 
-                        return (
-                            <div className="messageBlock">
-                                <div className={ message.isFromMyGroup ? "messageAndImage" : "messageAndImageOther"}>
-                                <div key={index} className={ message.isFromMyGroup ?'ourMessage' : 'othersMessage'}
-                                >
-                                    <div className='messageName'>{user._id == message.authorId ? 'Вы' : message.name}</div>
-                                    <div className='messageText'>{message.message}</div>
-                                    <div className='messageTime'>{formatDate(message.date)}</div>
+                        console.log(message)
+
+                        if(message.type == 'open') 
+                            return (
+                                <div>{
+                                    message.isFromMyGroup ? 
+                                    `Ваша группа предложила подружиться!` : 
+                                    `Найденная группа предложила подружиться!`
+                                }
                                 </div>
-                                <div className={ message.isFromMyGroup ? "imageChat" : "imageChatOther"}>
-                                    {message.name[0] ? message.name[0] : "?"}
+                            )
+                        else if(message.type == 'opened') 
+                            return (
+                                <div>{
+                                    message.isFromMyGroup ? 
+                                    `Ваша группа приняла предложение подружиться!` : 
+                                    `Найденная группа приняла предложение подружиться!`
+                                }
                                 </div>
+                            )
+                        else
+                            return (
+                                <div className="messageBlock">
+                                    <div className={ message.isFromMyGroup ? "messageAndImage" : "messageAndImageOther"}>
+                                    <div key={index} className={ message.isFromMyGroup ?'ourMessage' : 'othersMessage'}
+                                    >
+                                        <div className='messageName'>{user._id == message.authorId ? 'Вы' : message.name}</div>
+                                        <div className='messageText'>{message.message}</div>
+                                        <div className='messageTime'>{formatDate(message.date)}</div>
+                                    </div>
+                                    <div className={ message.isFromMyGroup ? "imageChat" : "imageChatOther"}>
+                                        {message.name[0] ? message.name[0] : "?"}
+                                    </div>
+                                    </div>
                                 </div>
-                            </div>
-                        )
+                            )
                     })}
                 </div>
 

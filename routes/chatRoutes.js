@@ -40,14 +40,15 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                                 authorId: message.authorId,
                                 name: userName,
                                 isFromMyGroup: groupId == message.groupId ? true : false,
-                                date: message.date
+                                date: message.date,
+                                type: message.type
                             })
                         })
 
                         let openMessage = await Message.findOne({
                             chatId: chat._id,
                             groupId,
-                            type: 'open'
+                            $or: [{type: 'open'}, {type: 'opened'}]
                         })
 
                         let foundGroupId = chat.groupId1 == groupId ? chat.groupId2 : chat.groupId1

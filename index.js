@@ -117,27 +117,41 @@ io.on('connection', (socket) => {
             }
             console.log(chat)
 
-            let newMessage = new Message({
-                groupId,
-                authorId: userId,
-                chatId: chat._id,
-                date: Date.now(),
-                type: 'open'
-            })
+            
 
-            let openMessage = await Message.findOne({
+            let openMessageFromOtherGroup = await Message.findOne({
                 chatId: chat._id,
                 type: 'open',
                 groupId: {$ne: groupId }
             })
-            if(openMessage) {
-                let c = await Chat.findByIdAndUpdate(chat._id, {
+
+            if(!openMessageFromOtherGroup) {
+                let newMessage = new Message({
+                    groupId,
+                    authorId: userId,
+                    chatId: chat._id,
+                    date: Date.now(),
+                    type: 'open'
+                })
+                newMessage.save().then(message => {
+                    io.to(chatId).emit('message', 'New');
+                })
+            } else {
+                await Chat.findByIdAndUpdate(chat._id, {
                     open: true
+                })
+                let newMessage = new Message({
+                    groupId,
+                    authorId: userId,
+                    chatId: chat._id,
+                    date: Date.now(),
+                    type: 'opened'
                 })
                 newMessage.save().then(message => {
                     io.to(chatId).emit('message', 'New');
                 })
             }
+
         } catch (error) {
             socket.emit('error', 'Server error')
         }
