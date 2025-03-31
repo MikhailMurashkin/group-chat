@@ -14,7 +14,7 @@ import CloseButton from 'react-bootstrap/esm/CloseButton'
 import Form from 'react-bootstrap/Form'
 import Spinner from 'react-bootstrap/Spinner'
 import Card from 'react-bootstrap/Card'
-import { ArrowLeft, Copy, Pencil, Chat } from 'react-bootstrap-icons'
+import { ArrowLeft, Copy, Pencil, Chat, XCircleFill } from 'react-bootstrap-icons'
 
 const Group = () => {
 
@@ -37,14 +37,19 @@ const Group = () => {
     const [newGroupDescription, setNewGroupDescription] = useState('')
     const [updatedDescription, setUpdatedDescription] = useState('')
     const [modalEditShow, setModalEditShow] = useState(false)
+    const [modalCloseChatShow, setModalCloseChatShow] = useState(false)
     const [groupFound, setGroupFound] = useState({})
     const navigate = useNavigate()
 
     async function fetchData(){
-        let info = await getGroupInfoById(groupId)
-        setGroupInfo(
-            info
-        )
+        try {
+            let info = await getGroupInfoById(groupId)
+            setGroupInfo(
+                info
+            )
+        } catch (e) {
+            navigate('/groups')
+        }
         try {
             let found = await getFoundGroupInfo(info.groupFoundId)
             setGroupFound(found)
@@ -165,20 +170,21 @@ const Group = () => {
                                     }}>Отказаться</Button>
                                 </div>}
                                 {groupInfo?.chat && 
-                                    <>
+                                    <div className="buttonsFound">
                                         <Button variant="dark" className='chatButton' onClick={() => {
                                             navigate('./chat')
                                         }}>
                                             <Chat size={18} />
                                             {' Чат'}
                                         </Button>
-                                        <Button variant="dark" className='chatButton' onClick={() => {
-                                            closeChat(groupId)
+                                        {groupInfo.isCreator &&
+                                        <Button variant="danger" className='chatButton' onClick={() => {
+                                            setModalCloseChatShow(true)
                                         }}>
-                                            <Chat size={18} />
-                                            {'Закрыть чат'}
-                                        </Button>
-                                    </>
+                                            <XCircleFill size={18} />
+                                            {' Закрыть чат'}
+                                        </Button>}
+                                    </div>
                                 }
                                 {(!groupInfo.isCreator && !groupInfo?.myDecision) &&
                                 <Card.Text className="text-muted">Администратор еще не принял решение</Card.Text>
@@ -271,6 +277,33 @@ const Group = () => {
                         setModalEditShow(false)
                     })
                 }}>Сохранить</Button>
+                </Modal.Footer>
+            </Modal>
+
+
+            <Modal
+                show={modalCloseChatShow}
+                size="lg"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+            >
+                <Modal.Header>
+                <Modal.Title id="contained-modal-title-vcenter">
+                    Закрытие чата
+                </Modal.Title>
+                <CloseButton onClick={() => setModalCloseChatShow(false)} />
+                </Modal.Header>
+                <Modal.Body>
+                    Чат с группой {groupFound?.name} будет прекращен. Вы уверены, что хотите закрыть чат?
+                </Modal.Body>
+                <Modal.Footer>
+                <Button variant='secondary' onClick={() => setModalEditShow(false)}>Отмена</Button>
+                <Button variant='danger' onClick={async () => {
+                        await closeChat(groupId)
+                        await fetchData()
+                        setModalEditShow(false)
+                    }
+                }>Закрыть чат</Button>
                 </Modal.Footer>
             </Modal>
         </>

@@ -230,6 +230,7 @@ const Groups = () => {
                     //варечка умница
                     try {
                     await joinGroupByCode(joinCode)
+                    setModalJoinShow(false)
                     } catch (e) {
                         console.log('got', e)
                         setModalJoinShow(false)
