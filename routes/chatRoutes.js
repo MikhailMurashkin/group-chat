@@ -56,12 +56,19 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                             id: foundGroupId
                         })
 
+                        let myGroup = await Group.findOne({
+                            id: groupId
+                        })
+
+
+
                         let openMessages = messages
 
                         res.status(200).json({ messagesList, chatId: chat._id, 
                             foundGroupName: foundGroup.name,
                             open: chat.open,
-                            sentOpen: openMessage ? true : false
+                            sentOpen: openMessage ? true : false,
+                            isCreator: myGroup.creatorId == req.user
                         })
                     })
                 })

@@ -28,6 +28,7 @@ const Chat = () => {
     const [fetched, setFetched] = useState(false) 
     const [chatLoaded, setChatLoaded] = useState(false)
     const [sentOpen, setSentOpen] = useState(false)
+    const [isCreator, setIsCreator] = useState(false)
 
     const navigate = useNavigate()
 
@@ -48,6 +49,9 @@ const Chat = () => {
         )
         setSentOpen(
             chatInfo.sentOpen
+        )
+        setIsCreator(
+            chatInfo.isCreator
         )
 
         socket.emit('joinChat', chatInfo.chatId)
@@ -99,20 +103,20 @@ const Chat = () => {
                     <ArrowLeft size={24} />
                 </div>
                 <div className="groupsText" style={{paddingTop: '20px', paddingBottom: '0px'}}>Чат</div>
-                <div className="openButtonBlock" style={{opacity: sentOpen ? '0.5' : '1'}}>
+                <div className="openButtonBlock" style={{opacity: sentOpen || !isCreator ? '0.5' : '1'}}>
                         <Button variant='outline-dark' onClick={async () => {
                             await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
-                        }}  disabled={sentOpen ? true : false}>
-                            Открыться
+                        }}  disabled={sentOpen || !isCreator ? true : false}>
+                            Подружиться
                         </Button>
                     </div>  
                 </div>
 
-                <div onClick={async () => {
+                {/* <div onClick={async () => {
                     await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
                     setSentOpen(true)
                 }}
-                >Открыться</div>
+                >Подружиться</div> */}
             
                 <div 
                 //style={{
