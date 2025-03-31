@@ -129,9 +129,9 @@ groupRoutes.post('/joinGroupByCode', protect, async (req, res) => {
             Group.findOneAndUpdate(
               { inviteCode: req.body.inviteCode },
               { $push: {participantsId: req.user} }
-            ).then(
-              res.status(200).json({message: "Joined!"})
-            )
+            ).then(group => {
+              res.status(200).json({groupId: group.id})
+            })
           }
         })
     } catch (error) {
