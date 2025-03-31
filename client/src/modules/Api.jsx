@@ -109,7 +109,7 @@ export const joinGroupByCode = async (inviteCode) => {
     throw new Error(data.message || 'Не удалось получить список групп');
   }
 
-  return data.group;
+  return data;
 }
 
 export const startGroupSearch = async (groupId) => {

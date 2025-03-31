@@ -14,6 +14,7 @@ import CloseButton from 'react-bootstrap/esm/CloseButton'
 import Form from 'react-bootstrap/Form'
 import Spinner from 'react-bootstrap/Spinner'
 import Card from 'react-bootstrap/Card'
+import Alert from 'react-bootstrap/Alert'
 import { ArrowLeft, Copy, Pencil, Chat, XCircleFill } from 'react-bootstrap-icons'
 
 const Group = () => {
@@ -32,7 +33,7 @@ const Group = () => {
     const [message, setMessage] = useState('message')
     const [response, setResponse] = useState('')
     const [groupInfo, setGroupInfo] = useState({})
-    const [showList, setShowList] = useState(false)
+    const [showList, setShowList] = useState(true)
     const [fetched, setFetched] = useState(false)
     const [newGroupDescription, setNewGroupDescription] = useState('')
     const [updatedDescription, setUpdatedDescription] = useState('')
@@ -42,8 +43,9 @@ const Group = () => {
     const navigate = useNavigate()
 
     async function fetchData(){
+        let info
         try {
-            let info = await getGroupInfoById(groupId)
+            info = await getGroupInfoById(groupId)
             setGroupInfo(
                 info
             )
@@ -209,7 +211,10 @@ const Group = () => {
                         </div>
                     }
                     {groupFound?.foundGroupDecision && !groupInfo.chat &&
-                        <h1>Поиск нового чата будет доступен завтра</h1>
+                        // <h1>Поиск нового чата будет доступен завтра</h1>
+                        <Alert variant='primary' style={{margin: '20px'}}>
+                            Поиск новой группы будет доступен завтра
+                        </Alert>
                     }
 
                 <div className="textBlock">
@@ -297,11 +302,11 @@ const Group = () => {
                     Чат с группой {groupFound?.name} будет прекращен. Вы уверены, что хотите закрыть чат?
                 </Modal.Body>
                 <Modal.Footer>
-                <Button variant='secondary' onClick={() => setModalEditShow(false)}>Отмена</Button>
+                <Button variant='secondary' onClick={() =>  setModalCloseChatShow(false)}>Отмена</Button>
                 <Button variant='danger' onClick={async () => {
                         await closeChat(groupId)
                         await fetchData()
-                        setModalEditShow(false)
+                        setModalCloseChatShow(false)
                     }
                 }>Закрыть чат</Button>
                 </Modal.Footer>

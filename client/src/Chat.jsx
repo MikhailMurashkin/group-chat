@@ -84,13 +84,6 @@ const Chat = () => {
         return day + '.' + month + '.' + year + ' ' + hour + ':' + minute
     }
 
-    const formatText = (text) => {
-        let formated = text.replaceAll("\r\n", "<br>")
-        formated = formated.replaceAll("\r", "<br>")
-        formated = formated.replaceAll("\n", "<br>")
-        return formated
-    }
-
 
     return (
         <>
