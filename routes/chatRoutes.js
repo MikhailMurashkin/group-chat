@@ -30,18 +30,24 @@ chatRoutes.post('/getChatData', protect, async (req, res) => {
                         let messagesList = []
                         messages.forEach(message => {
                             let userName = ''
+                            let userImage = ''
                             users.forEach(user => {
                                 if(user.id == message.authorId){
                                     userName = user.name
+                                    userImage = user.image
                                 }
                             })
+                            
+                            let isFromMyGroup = groupId == message.groupId ? true : false
+
                             messagesList.push({
                                 message: message.message,
                                 authorId: message.authorId,
                                 name: userName,
-                                isFromMyGroup: groupId == message.groupId ? true : false,
+                                isFromMyGroup,
                                 date: message.date,
-                                type: message.type
+                                type: message.type,
+                                image: isFromMyGroup || chat.open ? userImage : ''
                             })
                         })
 

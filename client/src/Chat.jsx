@@ -169,6 +169,9 @@ const Chat = () => {
                                         <div className='messageTime'>{formatDate(message.date)}</div>
                                     </div>
                                     <div className={ message.isFromMyGroup ? "imageChat" : "imageChatOther"}>
+                                        {
+                                        }
+                                        <img src={message.image} style={{width: '50px', height: '50px'}} />
                                         {message.name[0] ? message.name[0] : "?"}
                                     </div>
                                     </div>
