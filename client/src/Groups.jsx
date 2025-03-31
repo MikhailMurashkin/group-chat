@@ -56,12 +56,17 @@ const Groups = () => {
         }
     }, [])
 
-    const GroupElement = (par) => {
-        return (
-            <div>
-                {par.name}
-            </div>
-        )
+    async function joinGroup (joinCode) {
+        try {
+            let response = await joinGroupByCode(joinCode)
+            console.log(response)
+            navigate('/group/'+response.groupId)
+            setModalJoinShow(false)
+            } catch (e) {
+                console.log('got', e)
+                setModalJoinShow(false)
+                setModalErrorShow(true)
+            }
     }
 
 
@@ -226,16 +231,10 @@ const Groups = () => {
                 </Modal.Body>
                 <Modal.Footer>
                 <Button variant='secondary' onClick={() => setModalJoinShow(false)}>Отмена</Button>
-                <Button onClick={async () => {
+                <Button onClick={() => {
+
                     //варечка умница
-                    try {
-                    await joinGroupByCode(joinCode)
-                    setModalJoinShow(false)
-                    } catch (e) {
-                        console.log('got', e)
-                        setModalJoinShow(false)
-                        setModalErrorShow(true)
-                    }
+                    joinGroup(joinCode)
                 }}>Присоединиться</Button>
                 </Modal.Footer>
             </Modal>
