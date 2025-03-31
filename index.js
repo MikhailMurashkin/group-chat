@@ -51,6 +51,8 @@ let namespaces = {}
 
 io.on('connection', (socket) => {
 
+    socket.emit('message', 'Sombody connected');
+
     socket.on('joinChat', (chatId) => {
         socket.join(chatId);
         console.log(`User ${socket.id} joined chat ${chatId} !`);
@@ -83,6 +85,7 @@ io.on('connection', (socket) => {
                         date: Date.now()
                     })
     
+                    console.log("message: ", message)
                     newMessage.save().then(message => {
                         io.to(chatId).emit('message', 'New');
                     })

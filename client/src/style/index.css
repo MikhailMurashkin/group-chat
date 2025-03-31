@@ -185,18 +185,23 @@
 .chatPage {
   width: 100vw;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .chatPanel {
   width: 100%;
-  background-color: yellow;
+  /* background-color: yellow; */
   margin-top: 40px;
-  height: 50%;
+  height: 60%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   row-gap: 10px;
   text-align: left;
+  flex-grow: 1;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .ourMessage {
@@ -217,7 +222,9 @@
 
 .othersMessage {
   background-color: lightgray;
-  width: 60%;
+  max-width: 60%;
+  min-width: 160px;
+  width: fit-content;
   align-self: flex-start;
   border: 5px none lightgray;
   border-radius: 40px 40px 40px 0px;
@@ -238,12 +245,34 @@
   padding-top: 4px;
 }
 
+.messageText {
+
+  white-space:pre-wrap;
+}
+
+.messageWriteBlock {
+  background-color: black;
+  width: 100%;
+  padding-right: 20px;
+  padding-left: 10px;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: row;
+  column-gap: 10px;
+  align-items: center;
+}
+
+.messageWrite {
+  width: 100%;
+  flex-grow: 1;
+}
+
 .messageArea {
   width: 100%;
   resize: none;
   background-color: rgb(69, 69, 69);
-  color: rgb(238, 238, 238);
-  border: none;
-  border-radius: 20px;
+  color: white;
+  border-radius: 40px;
   padding: 10px 20px;
+  outline: none;
 }
