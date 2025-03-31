@@ -149,12 +149,12 @@ const Chat = () => {
                 </Modal.Body> */}
                 <div className="messageWriteBlock">
                     <div className="messageWrite">
-                        <textarea className='messageArea' rows={3} value={message}
+                        <textarea className='messageArea' rows={2} value={message}
                         onChange={(e) => {
                             setMessage(e.target.value)
                         }} />
                     </div>
-                <Send size={48} style={{cursor: 'pointer'}} color='white' onClick={async () => {
+                <Send size={48} style={{cursor: 'pointer'}} color='#414141' onClick={async () => {
                     await socket.emit('message', chatId, groupId, message, localStorage.getItem('token'))
                     setMessage('')
                     await fetchData()
