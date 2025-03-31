@@ -95,6 +95,11 @@ const Chat = () => {
                     <ArrowLeft size={24} />
                 </div>
                 <div className="groupsText" style={{paddingTop: '20px', paddingBottom: '0px'}}>Чат</div>
+                <div className="openButtonBlock">
+                        <Button variant='outline-dark'>
+                            Открыться
+                        </Button>
+                    </div>
                 </div>
             
                 <div 
@@ -118,11 +123,18 @@ const Chat = () => {
                         }
 
                         return (
-                            <div key={index} className={ message.isFromMyGroup ?'ourMessage' : 'othersMessage'}
-                            >
-                                <div className='messageName'>{user._id == message.authorId ? 'Вы' : message.name}</div>
-                                <div className='messageText'>{message.message}</div>
-                                <div className='messageTime'>{formatDate(message.date)}</div>
+                            <div className="messageBlock">
+                                <div className={ message.isFromMyGroup ? "messageAndImage" : "messageAndImageOther"}>
+                                <div key={index} className={ message.isFromMyGroup ?'ourMessage' : 'othersMessage'}
+                                >
+                                    <div className='messageName'>{user._id == message.authorId ? 'Вы' : message.name}</div>
+                                    <div className='messageText'>{message.message}</div>
+                                    <div className='messageTime'>{formatDate(message.date)}</div>
+                                </div>
+                                <div className={ message.isFromMyGroup ? "imageChat" : "imageChatOther"}>
+                                    {message.name[0] ? message.name[0] : "?"}
+                                </div>
+                                </div>
                             </div>
                         )
                     })}

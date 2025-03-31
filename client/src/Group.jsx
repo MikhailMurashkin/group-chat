@@ -176,14 +176,14 @@ const Group = () => {
                                         <Button variant="dark" className='chatButton' onClick={() => {
                                             navigate('./chat')
                                         }}>
-                                            <Chat size={18} />
+                                            <Chat size={16} />
                                             {' Чат'}
                                         </Button>
                                         {groupInfo.isCreator &&
                                         <Button variant="danger" className='chatButton' onClick={() => {
                                             setModalCloseChatShow(true)
                                         }}>
-                                            <XCircleFill size={18} />
+                                            <XCircleFill size={16} style={{verticalAlign: 'middle'}} />
                                             {' Закрыть чат'}
                                         </Button>}
                                     </div>
@@ -198,7 +198,7 @@ const Group = () => {
                                 <Card.Text className="text-muted">Вы отказались от общения</Card.Text>
                                 }
                                 {groupFound?.foundGroupDecision == false &&
-                                <Card.Text className="text-muted">К сожалению, группа отказалась с вами общаться</Card.Text>
+                                <Card.Text className="text-muted">К сожалению, группа не приняла приглашение</Card.Text>
                                 }
                                 </Card.Body>
                             </Card>
