@@ -324,6 +324,7 @@
   border-radius: 45px;
   text-align: center;
   line-height: 50px;
+  margin-right: 10px;
 }
 
 .imageChatOther {
@@ -336,4 +337,20 @@
   border-radius: 45px;
   text-align: center;
   line-height: 50px;
+  margin-left: 10px;
+}
+
+.infoMessage {
+  background-color: aqua;
+  text-align: center;
+  width: fit-content;
+  align-self: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-radius: 40px;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  font-weight: 300;
 }

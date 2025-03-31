@@ -188,16 +188,16 @@ const Group = () => {
                                         </Button>}
                                     </div>
                                 }
-                                {(!groupInfo.isCreator && !groupInfo?.myDecision) &&
+                                {(!groupInfo.isCreator && !groupInfo?.myDecision && !groupInfo?.chat) &&
                                 <Card.Text className="text-muted">Администратор еще не принял решение</Card.Text>
                                 }
-                                {(groupInfo?.myDecision && !groupFound?.foundGroupDecision && groupFound.foundGroupDecision != false) &&
+                                {(groupInfo?.myDecision && !groupFound?.foundGroupDecision && groupFound.foundGroupDecision != false && !groupInfo?.chat) &&
                                 <Card.Text className="text-muted">Ожидаем ответа от другой группы...</Card.Text>
                                 }
-                                {groupInfo?.myDecision == false &&
+                                {groupInfo?.myDecision == false && !groupInfo?.chat &&
                                 <Card.Text className="text-muted">Вы отказались от общения</Card.Text>
                                 }
-                                {groupFound?.foundGroupDecision == false &&
+                                {groupFound?.foundGroupDecision == false && !groupInfo?.chat &&
                                 <Card.Text className="text-muted">К сожалению, группа не приняла приглашение</Card.Text>
                                 }
                                 </Card.Body>

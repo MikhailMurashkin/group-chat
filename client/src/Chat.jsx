@@ -10,6 +10,7 @@ import CloseButton from 'react-bootstrap/esm/CloseButton'
 import Form from 'react-bootstrap/Form'
 import Spinner from 'react-bootstrap/Spinner'
 import Card from 'react-bootstrap/Card'
+import Image from 'react-bootstrap/Image'
 import { ArrowLeft, Send } from 'react-bootstrap-icons'
 
 import socket from './modules/socket'
@@ -28,9 +29,24 @@ const Chat = () => {
     const [fetched, setFetched] = useState(false) 
     const [chatLoaded, setChatLoaded] = useState(false)
     const [sentOpen, setSentOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
     const [isCreator, setIsCreator] = useState(false)
 
     const navigate = useNavigate()
+
+    function pressEnter () {
+        try {
+        let input = document.querySelector('messageArea')
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+              event.preventDefault()
+              document.getElementById("sendButton").click()
+            }
+          })
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
     async function fetchData(){
         let chatInfo
@@ -49,6 +65,9 @@ const Chat = () => {
         )
         setSentOpen(
             chatInfo.sentOpen
+        )
+        setIsOpen(
+            chatInfo.open
         )
         setIsCreator(
             chatInfo.isCreator
@@ -74,6 +93,8 @@ const Chat = () => {
         });
 
         fetchData()
+        //pressEnter()
+        
 
         return () => {
             socket.off('message');
@@ -103,20 +124,16 @@ const Chat = () => {
                     <ArrowLeft size={24} />
                 </div>
                 <div className="groupsText" style={{paddingTop: '20px', paddingBottom: '0px'}}>Чат</div>
+                {isCreator &&
                 <div className="openButtonBlock" style={{opacity: sentOpen || !isCreator ? '0.5' : '1'}}>
-                        <Button variant='outline-dark' onClick={async () => {
-                            await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
-                        }}  disabled={sentOpen || !isCreator ? true : false}>
-                            Подружиться
-                        </Button>
-                    </div>  
+                    <Button variant='outline-dark' onClick={async () => {
+                        await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
+                    }}  disabled={sentOpen || !isCreator ? true : false}>
+                        Подружиться
+                    </Button>
+                </div>  
+                }
                 </div>
-
-                {/* <div onClick={async () => {
-                    await socket.emit('open', chatId, groupId, localStorage.getItem('token'))
-                    setSentOpen(true)
-                }}
-                >Подружиться</div> */}
             
                 <div 
                 //style={{
@@ -142,16 +159,16 @@ const Chat = () => {
 
                         if(message.type == 'open') 
                             return (
-                                <div>{
-                                    message.isFromMyGroup ? 
+                                <div className='infoMessage'>
+                                    {message.isFromMyGroup ? 
                                     `Ваша группа предложила подружиться!` : 
                                     `Найденная группа предложила подружиться!`
-                                }
+                                    }
                                 </div>
                             )
                         else if(message.type == 'opened') 
                             return (
-                                <div>{
+                                <div className='infoMessage'>{
                                     message.isFromMyGroup ? 
                                     `Ваша группа приняла предложение подружиться!` : 
                                     `Найденная группа приняла предложение подружиться!`
@@ -168,12 +185,18 @@ const Chat = () => {
                                         <div className='messageText'>{message.message}</div>
                                         <div className='messageTime'>{formatDate(message.date)}</div>
                                     </div>
+                                    {!isOpen &&
                                     <div className={ message.isFromMyGroup ? "imageChat" : "imageChatOther"}>
-                                        {
-                                        }
-                                        <img src={message.image} style={{width: '50px', height: '50px'}} />
                                         {message.name[0] ? message.name[0] : "?"}
                                     </div>
+                                    }
+                                    {isOpen &&
+                                        <Image src={message.image} 
+                                        style={{width: '50px', height: '50px', objectFit: 'cover'}} 
+                                        roundedCircle fluid />
+                                    }
+                        
+                                    
                                     </div>
                                 </div>
                             )
@@ -195,11 +218,17 @@ const Chat = () => {
                 <div className="messageWriteBlock">
                     <div className="messageWrite">
                         <textarea className='messageArea' rows={2} value={message}
+                        placeholder='Введите сообщение' id='messageArea'
                         onChange={(e) => {
                             setMessage(e.target.value)
                         }} />
                     </div>
-                <Send size={48} style={{cursor: 'pointer'}} color='#414141' onClick={async () => {
+                <Send size={48} className='sendButton' 
+                style={{cursor: message.length > 0 ? 'pointer' : 'initial', opacity: message.length > 0 ? '1' : '0.7'}} 
+                color='#414141' onClick={async () => {
+                    if (message.length  == 0) {
+                        return
+                    }
                     await socket.emit('message', chatId, groupId, message, localStorage.getItem('token'))
                     setMessage('')
                     await fetchData()
